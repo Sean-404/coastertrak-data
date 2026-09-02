@@ -1,0 +1,24 @@
+node_modules/
+dist/
+.env
+.env.local
+
+# Runtime pipeline data (immutable raw snapshots stay local)
+data/raw/**
+data/processed/**
+data/reports/**
+data/output/**
+
+# Generated review queue (published to Supabase Storage instead)
+data/review/*.json
+
+# Keep directory structure
+!data/raw/.gitkeep
+!data/processed/.gitkeep
+!data/reports/.gitkeep
+!data/output/.gitkeep
+!data/review/.gitkeep
+
+# Overrides: commit examples only
+data/overrides/parks.json
+data/overrides/coasters.json

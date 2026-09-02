@@ -1,0 +1,75 @@
+{
+  "offset": 0,
+  "pageSize": 3,
+  "queryMode": "full",
+  "bindingCount": 3,
+  "bindings": [
+    {
+      "item": {
+        "type": "uri",
+        "value": "http://www.wikidata.org/entity/Q789078"
+      },
+      "itemLabel": {
+        "type": "literal",
+        "value": "Universal Studios Singapore",
+        "xml:lang": "en"
+      },
+      "coord": {
+        "type": "literal",
+        "value": "Point(103.823991 1.254042)",
+        "datatype": "http://www.opengis.net/ont/geosparql#wktLiteral"
+      },
+      "countryLabel": {
+        "type": "literal",
+        "value": "Malaysia",
+        "xml:lang": "en"
+      },
+      "website": {
+        "type": "literal",
+        "value": "https://www.rwsentosa.com"
+      }
+    },
+    {
+      "item": {
+        "type": "uri",
+        "value": "http://www.wikidata.org/entity/Q1780539"
+      },
+      "itemLabel": {
+        "type": "literal",
+        "value": "Fårup Sommerland",
+        "xml:lang": "en"
+      },
+      "coord": {
+        "type": "literal",
+        "value": "Point(9.2333 57.3167)",
+        "datatype": "http://www.opengis.net/ont/geosparql#wktLiteral"
+      },
+      "countryLabel": {
+        "type": "literal",
+        "value": "Denmark",
+        "xml:lang": "en"
+      }
+    },
+    {
+      "item": {
+        "type": "uri",
+        "value": "http://www.wikidata.org/entity/Q9999999"
+      },
+      "itemLabel": {
+        "type": "literal",
+        "value": "Fårup Sommarland",
+        "xml:lang": "sv"
+      },
+      "coord": {
+        "type": "literal",
+        "value": "Point(9.2335 57.3169)",
+        "datatype": "http://www.opengis.net/ont/geosparql#wktLiteral"
+      },
+      "countryLabel": {
+        "type": "literal",
+        "value": "Denmark",
+        "xml:lang": "en"
+      }
+    }
+  ]
+}

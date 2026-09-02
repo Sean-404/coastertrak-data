@@ -1,0 +1,303 @@
+{
+  "version": 1,
+  "generatedAt": "2026-09-02T14:00:00.000Z",
+  "coasters": [
+    {
+      "id": "coaster_wikidata_Q1234567",
+      "sourceIds": {
+        "wikidata": "Q1234567",
+        "rcdb": "4567",
+        "enwiki": "Battlestar Galactica (Universal Studios Singapore)"
+      },
+      "name": {
+        "value": "Battlestar Galactica: Human vs. Cylon",
+        "provenance": [
+          {
+            "source": "wikidata",
+            "sourceId": "Q1234567",
+            "retrievedAt": "2026-09-02T14:00:00.000Z"
+          }
+        ]
+      },
+      "aliases": [],
+      "parkId": "park_wikidata_Q789078",
+      "countryCode": {
+        "value": "SG",
+        "provenance": [
+          {
+            "source": "derived",
+            "sourceId": "park_wikidata_Q789078",
+            "retrievedAt": "2026-09-02T14:00:00.000Z"
+          }
+        ]
+      },
+      "manufacturer": {
+        "value": "Vekoma",
+        "provenance": [
+          {
+            "source": "wikidata",
+            "sourceId": "Q1234567",
+            "retrievedAt": "2026-09-02T14:00:00.000Z"
+          }
+        ]
+      },
+      "model": null,
+      "coasterType": {
+        "value": "Steel",
+        "provenance": [
+          {
+            "source": "wikidata",
+            "sourceId": "Q1234567",
+            "retrievedAt": "2026-09-02T14:00:00.000Z",
+            "rawValue": "roller coaster"
+          }
+        ]
+      },
+      "status": "OPERATING",
+      "openingDate": {
+        "value": "2010-03-18",
+        "provenance": [
+          {
+            "source": "wikidata",
+            "sourceId": "Q1234567",
+            "retrievedAt": "2026-09-02T14:00:00.000Z"
+          }
+        ]
+      },
+      "closingDate": null,
+      "height": {
+        "value": { "value": 42.7, "unit": "m" },
+        "provenance": [
+          {
+            "source": "wikidata",
+            "sourceId": "Q1234567",
+            "retrievedAt": "2026-09-02T14:00:00.000Z"
+          }
+        ]
+      },
+      "speed": {
+        "value": { "value": 25.7, "unit": "m/s" },
+        "provenance": [
+          {
+            "source": "wikidata",
+            "sourceId": "Q1234567",
+            "retrievedAt": "2026-09-02T14:00:00.000Z"
+          }
+        ]
+      },
+      "length": {
+        "value": { "value": 1120, "unit": "m" },
+        "provenance": [
+          {
+            "source": "wikidata",
+            "sourceId": "Q1234567",
+            "retrievedAt": "2026-09-02T14:00:00.000Z"
+          }
+        ]
+      },
+      "inversions": null,
+      "duration": null,
+      "coordinates": {
+        "value": { "lat": 1.254, "lng": 103.824 },
+        "provenance": [
+          {
+            "source": "wikidata",
+            "sourceId": "Q1234567",
+            "retrievedAt": "2026-09-02T14:00:00.000Z"
+          }
+        ]
+      },
+      "description": null,
+      "imageUrl": null,
+      "verification": {
+        "qualityScore": "HIGH",
+        "needsReview": false,
+        "reviewReasons": []
+      }
+    },
+    {
+      "id": "coaster_wikidata_Q8888888",
+      "sourceIds": { "wikidata": "Q8888888" },
+      "name": {
+        "value": "Son of Beast",
+        "provenance": [
+          {
+            "source": "wikidata",
+            "sourceId": "Q8888888",
+            "retrievedAt": "2026-09-02T14:00:00.000Z"
+          }
+        ]
+      },
+      "aliases": [],
+      "parkId": null,
+      "countryCode": {
+        "value": "US",
+        "provenance": [
+          {
+            "source": "wikidata",
+            "sourceId": "Q8888888",
+            "retrievedAt": "2026-09-02T14:00:00.000Z",
+            "rawValue": "United States"
+          }
+        ]
+      },
+      "manufacturer": {
+        "value": "Werner Stengel",
+        "provenance": [
+          {
+            "source": "wikidata",
+            "sourceId": "Q8888888",
+            "retrievedAt": "2026-09-02T14:00:00.000Z"
+          }
+        ]
+      },
+      "model": null,
+      "coasterType": {
+        "value": "Wood",
+        "provenance": [
+          {
+            "source": "wikidata",
+            "sourceId": "Q8888888",
+            "retrievedAt": "2026-09-02T14:00:00.000Z"
+          }
+        ]
+      },
+      "status": "REMOVED",
+      "openingDate": {
+        "value": "2000-05-05",
+        "provenance": [
+          {
+            "source": "wikidata",
+            "sourceId": "Q8888888",
+            "retrievedAt": "2026-09-02T14:00:00.000Z"
+          }
+        ]
+      },
+      "closingDate": {
+        "value": "2012-11-20",
+        "provenance": [
+          {
+            "source": "wikidata",
+            "sourceId": "Q8888888",
+            "retrievedAt": "2026-09-02T14:00:00.000Z"
+          }
+        ]
+      },
+      "height": {
+        "value": { "value": 66.4, "unit": "m" },
+        "provenance": [
+          {
+            "source": "wikidata",
+            "sourceId": "Q8888888",
+            "retrievedAt": "2026-09-02T14:00:00.000Z"
+          }
+        ]
+      },
+      "speed": null,
+      "length": null,
+      "inversions": null,
+      "duration": null,
+      "coordinates": null,
+      "description": null,
+      "imageUrl": null,
+      "verification": {
+        "qualityScore": "MEDIUM",
+        "needsReview": true,
+        "reviewReasons": ["Missing park linkage"]
+      }
+    },
+    {
+      "id": "coaster_wikidata_Q7777777",
+      "sourceIds": { "wikidata": "Q7777777" },
+      "name": {
+        "value": "Hyperion",
+        "provenance": [
+          {
+            "source": "wikidata",
+            "sourceId": "Q7777777",
+            "retrievedAt": "2026-09-02T14:00:00.000Z"
+          }
+        ]
+      },
+      "aliases": [],
+      "parkId": null,
+      "countryCode": {
+        "value": "PL",
+        "provenance": [
+          {
+            "source": "wikidata",
+            "sourceId": "Q7777777",
+            "retrievedAt": "2026-09-02T14:00:00.000Z",
+            "rawValue": "Poland"
+          }
+        ]
+      },
+      "manufacturer": {
+        "value": "Vekoma",
+        "provenance": [
+          {
+            "source": "wikidata",
+            "sourceId": "Q7777777",
+            "retrievedAt": "2026-09-02T14:00:00.000Z"
+          }
+        ]
+      },
+      "model": null,
+      "coasterType": {
+        "value": "Steel",
+        "provenance": [
+          {
+            "source": "wikidata",
+            "sourceId": "Q7777777",
+            "retrievedAt": "2026-09-02T14:00:00.000Z"
+          }
+        ]
+      },
+      "status": "OPERATING",
+      "openingDate": {
+        "value": "2018-07-14",
+        "provenance": [
+          {
+            "source": "wikidata",
+            "sourceId": "Q7777777",
+            "retrievedAt": "2026-09-02T14:00:00.000Z"
+          }
+        ]
+      },
+      "closingDate": null,
+      "height": {
+        "value": { "value": 250, "unit": "m" },
+        "provenance": [
+          {
+            "source": "wikidata",
+            "sourceId": "Q7777777",
+            "retrievedAt": "2026-09-02T14:00:00.000Z"
+          }
+        ],
+        "confidence": "LOW"
+      },
+      "speed": {
+        "value": { "value": 55, "unit": "m/s" },
+        "provenance": [
+          {
+            "source": "wikidata",
+            "sourceId": "Q7777777",
+            "retrievedAt": "2026-09-02T14:00:00.000Z"
+          }
+        ],
+        "confidence": "LOW"
+      },
+      "length": null,
+      "inversions": null,
+      "duration": null,
+      "coordinates": null,
+      "description": null,
+      "imageUrl": null,
+      "verification": {
+        "qualityScore": "LOW",
+        "needsReview": true,
+        "reviewReasons": ["Suspicious height: 250m exceeds plausible range", "Suspicious speed: 55 m/s"]
+      }
+    }
+  ]
+}

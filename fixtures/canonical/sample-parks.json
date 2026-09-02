@@ -1,0 +1,102 @@
+{
+  "version": 1,
+  "generatedAt": "2026-09-02T14:00:00.000Z",
+  "parks": [
+    {
+      "id": "park_wikidata_Q789078",
+      "sourceIds": { "wikidata": "Q789078" },
+      "name": {
+        "value": "Universal Studios Singapore",
+        "provenance": [
+          {
+            "source": "wikidata",
+            "sourceId": "Q789078",
+            "retrievedAt": "2026-09-02T14:00:00.000Z"
+          }
+        ],
+        "confidence": "HIGH"
+      },
+      "aliases": [],
+      "countryCode": {
+        "value": "SG",
+        "provenance": [
+          {
+            "source": "manual",
+            "sourceId": "Q789078",
+            "retrievedAt": "2026-08-28T00:00:00.000Z",
+            "rawValue": "Malaysia"
+          }
+        ],
+        "confidence": "HIGH"
+      },
+      "status": "OPERATING",
+      "coordinates": {
+        "value": { "lat": 1.254042, "lng": 103.823991 },
+        "provenance": [
+          {
+            "source": "wikidata",
+            "sourceId": "Q789078",
+            "retrievedAt": "2026-09-02T14:00:00.000Z"
+          }
+        ]
+      },
+      "website": {
+        "value": "https://www.rwsentosa.com",
+        "provenance": [
+          {
+            "source": "wikidata",
+            "sourceId": "Q789078",
+            "retrievedAt": "2026-09-02T14:00:00.000Z"
+          }
+        ]
+      },
+      "verification": {
+        "qualityScore": "MEDIUM",
+        "needsReview": true,
+        "reviewReasons": ["Country corrected from Wikidata P17 via manual override"]
+      }
+    },
+    {
+      "id": "park_wikidata_Q1780539",
+      "sourceIds": { "wikidata": "Q1780539" },
+      "name": {
+        "value": "Fårup Sommerland",
+        "provenance": [
+          {
+            "source": "wikidata",
+            "sourceId": "Q1780539",
+            "retrievedAt": "2026-09-02T14:00:00.000Z"
+          }
+        ]
+      },
+      "aliases": ["Fårup Sommarland"],
+      "countryCode": {
+        "value": "DK",
+        "provenance": [
+          {
+            "source": "wikidata",
+            "sourceId": "Q1780539",
+            "retrievedAt": "2026-09-02T14:00:00.000Z",
+            "rawValue": "Denmark"
+          }
+        ]
+      },
+      "status": "OPERATING",
+      "coordinates": {
+        "value": { "lat": 57.3167, "lng": 9.2333 },
+        "provenance": [
+          {
+            "source": "wikidata",
+            "sourceId": "Q1780539",
+            "retrievedAt": "2026-09-02T14:00:00.000Z"
+          }
+        ]
+      },
+      "website": null,
+      "verification": {
+        "needsReview": true,
+        "reviewReasons": ["Possible duplicate: park_wikidata_Q9999999 (similar name, same country, coords within 100m)"]
+      }
+    }
+  ]
+}

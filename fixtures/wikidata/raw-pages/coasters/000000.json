@@ -1,0 +1,223 @@
+{
+  "offset": 0,
+  "pageSize": 4,
+  "queryMode": "full",
+  "bindingCount": 4,
+  "bindings": [
+    {
+      "item": {
+        "type": "uri",
+        "value": "http://www.wikidata.org/entity/Q1234567"
+      },
+      "itemLabel": {
+        "type": "literal",
+        "value": "Battlestar Galactica: Human vs. Cylon",
+        "xml:lang": "en"
+      },
+      "coord": {
+        "type": "literal",
+        "value": "Point(103.824 1.254)",
+        "datatype": "http://www.opengis.net/ont/geosparql#wktLiteral"
+      },
+      "countryLabel": {
+        "type": "literal",
+        "value": "Singapore",
+        "xml:lang": "en"
+      },
+      "parkLabel": {
+        "type": "literal",
+        "value": "Universal Studios Singapore",
+        "xml:lang": "en"
+      },
+      "park": {
+        "type": "uri",
+        "value": "http://www.wikidata.org/entity/Q789078"
+      },
+      "manufacturerLabel": {
+        "type": "literal",
+        "value": "Vekoma",
+        "xml:lang": "en"
+      },
+      "clsLabel": {
+        "type": "literal",
+        "value": "roller coaster",
+        "xml:lang": "en"
+      },
+      "heightM": {
+        "type": "literal",
+        "value": "42.7",
+        "datatype": "http://www.w3.org/2001/XMLSchema#decimal"
+      },
+      "speedMs": {
+        "type": "literal",
+        "value": "25.7",
+        "datatype": "http://www.w3.org/2001/XMLSchema#decimal"
+      },
+      "lengthM": {
+        "type": "literal",
+        "value": "1120",
+        "datatype": "http://www.w3.org/2001/XMLSchema#decimal"
+      },
+      "opening": {
+        "type": "literal",
+        "value": "2010-03-18T00:00:00Z",
+        "datatype": "http://www.w3.org/2001/XMLSchema#dateTime"
+      },
+      "rcdbId": {
+        "type": "literal",
+        "value": "4567"
+      },
+      "enwiki": {
+        "type": "literal",
+        "value": "Battlestar Galactica (Universal Studios Singapore)"
+      }
+    },
+    {
+      "item": {
+        "type": "uri",
+        "value": "http://www.wikidata.org/entity/Q7654321"
+      },
+      "itemLabel": {
+        "type": "literal",
+        "value": "Falken",
+        "xml:lang": "en"
+      },
+      "coord": {
+        "type": "literal",
+        "value": "Point(9.233 57.317)",
+        "datatype": "http://www.opengis.net/ont/geosparql#wktLiteral"
+      },
+      "countryLabel": {
+        "type": "literal",
+        "value": "Denmark",
+        "xml:lang": "en"
+      },
+      "parkLabel": {
+        "type": "literal",
+        "value": "Fårup Sommerland",
+        "xml:lang": "en"
+      },
+      "park": {
+        "type": "uri",
+        "value": "http://www.wikidata.org/entity/Q1780539"
+      },
+      "manufacturerLabel": {
+        "type": "literal",
+        "value": "S&S Worldwide",
+        "xml:lang": "en"
+      },
+      "clsLabel": {
+        "type": "literal",
+        "value": "roller coaster",
+        "xml:lang": "en"
+      },
+      "heightM": {
+        "type": "literal",
+        "value": "33",
+        "datatype": "http://www.w3.org/2001/XMLSchema#decimal"
+      },
+      "speedMs": {
+        "type": "literal",
+        "value": "24.6",
+        "datatype": "http://www.w3.org/2001/XMLSchema#decimal"
+      },
+      "opening": {
+        "type": "literal",
+        "value": "2013-06-01T00:00:00Z",
+        "datatype": "http://www.w3.org/2001/XMLSchema#dateTime"
+      }
+    },
+    {
+      "item": {
+        "type": "uri",
+        "value": "http://www.wikidata.org/entity/Q8888888"
+      },
+      "itemLabel": {
+        "type": "literal",
+        "value": "Son of Beast",
+        "xml:lang": "en"
+      },
+      "countryLabel": {
+        "type": "literal",
+        "value": "United States",
+        "xml:lang": "en"
+      },
+      "parkLabel": {
+        "type": "literal",
+        "value": "Kings Island",
+        "xml:lang": "en"
+      },
+      "manufacturerLabel": {
+        "type": "literal",
+        "value": "Werner Stengel",
+        "xml:lang": "en"
+      },
+      "clsLabel": {
+        "type": "literal",
+        "value": "roller coaster",
+        "xml:lang": "en"
+      },
+      "heightM": {
+        "type": "literal",
+        "value": "66.4",
+        "datatype": "http://www.w3.org/2001/XMLSchema#decimal"
+      },
+      "retirement": {
+        "type": "literal",
+        "value": "2009-06-16T00:00:00Z",
+        "datatype": "http://www.w3.org/2001/XMLSchema#dateTime"
+      },
+      "demolished": {
+        "type": "literal",
+        "value": "2012-11-20T00:00:00Z",
+        "datatype": "http://www.w3.org/2001/XMLSchema#dateTime"
+      },
+      "opening": {
+        "type": "literal",
+        "value": "2000-05-05T00:00:00Z",
+        "datatype": "http://www.w3.org/2001/XMLSchema#dateTime"
+      }
+    },
+    {
+      "item": {
+        "type": "uri",
+        "value": "http://www.wikidata.org/entity/Q7777777"
+      },
+      "itemLabel": {
+        "type": "literal",
+        "value": "Hyperion",
+        "xml:lang": "en"
+      },
+      "countryLabel": {
+        "type": "literal",
+        "value": "Poland",
+        "xml:lang": "en"
+      },
+      "manufacturerLabel": {
+        "type": "literal",
+        "value": "Vekoma",
+        "xml:lang": "en"
+      },
+      "clsLabel": {
+        "type": "literal",
+        "value": "roller coaster",
+        "xml:lang": "en"
+      },
+      "heightM": {
+        "type": "literal",
+        "value": "250",
+        "datatype": "http://www.w3.org/2001/XMLSchema#decimal"
+      },
+      "speedMs": {
+        "type": "literal",
+        "value": "55",
+        "datatype": "http://www.w3.org/2001/XMLSchema#decimal"
+      },
+      "opening": {
+        "type": "literal",
+        "value": "2018-07-14T00:00:00Z",
+        "datatype": "http://www.w3.org/2001/XMLSchema#dateTime"
+      }
+    }
+  ]
+}

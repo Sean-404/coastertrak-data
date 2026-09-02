@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "overrides": [
+    {
+      "match": { "sourceIds.wikidata": "Q1234567" },
+      "patch": { "parkId": "park_wikidata_Q789078" },
+      "reason": "Coaster was linked to wrong park in Wikidata",
+      "appliedBy": "manual",
+      "appliedAt": "2026-08-28T00:00:00.000Z"
+    }
+  ]
+}

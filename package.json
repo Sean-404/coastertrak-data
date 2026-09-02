@@ -1,0 +1,40 @@
+{
+  "name": "coastertrak-data",
+  "version": "0.2.0",
+  "private": true,
+  "description": "Data ingestion, processing, validation and quality-control pipeline for CoasterTrak",
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "ingest": "tsx src/cli/index.ts ingest",
+    "process": "tsx src/cli/index.ts process",
+    "validate": "tsx src/cli/index.ts validate",
+    "report": "tsx src/cli/index.ts report",
+    "export": "tsx src/cli/index.ts export",
+    "pipeline": "tsx src/cli/index.ts pipeline",
+    "analyze:supabase": "tsx src/cli/index.ts analyze:supabase",
+    "ai:review": "tsx src/cli/index.ts ai:review",
+    "publish": "tsx src/cli/index.ts publish",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.105.4",
+    "zod": "^3.25.76"
+  },
+  "devDependencies": {
+    "@types/node": "^25.0.0",
+    "eslint": "^9.39.0",
+    "prettier": "^3.6.2",
+    "tsx": "^4.20.6",
+    "typescript": "^6.0.0",
+    "typescript-eslint": "^8.46.0",
+    "vitest": "^4.1.10"
+  }
+}

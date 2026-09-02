@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "overrides": [
+    {
+      "match": { "sourceIds.wikidata": "Q789078" },
+      "patch": { "countryCode": "SG" },
+      "reason": "Wikidata P17 incorrectly lists Malaysia for Universal Studios Singapore",
+      "appliedBy": "manual",
+      "appliedAt": "2026-08-28T00:00:00.000Z"
+    }
+  ]
+}
