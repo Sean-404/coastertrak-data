@@ -100,7 +100,20 @@ export async function runAiCatalogReview(options: AiReviewOptions = {}): Promise
 
   const selected = selectItemsForAiReview(queue.items, limit, includeDuplicates);
   if (!selected.length) {
-    throw new Error("No review items selected for AI review");
+    log("No review items selected for AI review — writing empty report");
+    return {
+      version: 1,
+      generatedAt: new Date().toISOString(),
+      sourceRunId,
+      model,
+      itemsRequested: 0,
+      itemsReviewed: 0,
+      batches: 0,
+      estimatedInputTokens: 0,
+      estimatedOutputTokens: 0,
+      estimatedCostUsd: 0,
+      assessments: [],
+    };
   }
 
   const indexed = selected.map((item, selIndex) => {
