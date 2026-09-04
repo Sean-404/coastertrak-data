@@ -6,10 +6,12 @@ import {
 } from "../normalize/dates.js";
 import { isValidCoordinates } from "../normalize/coordinates.js";
 import { haversineKm } from "../lib/geo.js";
+import { coasterPublicPath, resolveCoasterDbId } from "../lib/public-links.js";
 import { findCoasterDuplicateCandidates, findExactCoasterDuplicates } from "../matching/coasters.js";
 import { findParkDuplicateCandidates } from "../matching/parks.js";
 import type {
   CountryConflict,
+  MissingDataItem,
   ReviewItem,
   SuspiciousValue,
 } from "../matching/types.js";
@@ -23,6 +25,18 @@ export const STAT_LIMITS = {
   inversions: 14,
   parkCoasterMaxKm: 50,
 } as const;
+
+/** Fields checked for coaster completeness (still empty after sync / backfill). */
+export const COASTER_COMPLETENESS_FIELDS = [
+  "height",
+  "speed",
+  "length",
+  "manufacturer",
+  "image",
+  "opening_year",
+] as const;
+
+export type CoasterCompletenessField = (typeof COASTER_COMPLETENESS_FIELDS)[number];
 
 export type ValidateCatalogInput = {
   parks: CanonicalPark[];
@@ -39,9 +53,33 @@ function countBySeverity(findings: QualityFinding[]) {
   };
 }
 
+function missingCoasterCompletenessFields(coaster: CanonicalCoaster): CoasterCompletenessField[] {
+  const missing: CoasterCompletenessField[] = [];
+  if (coaster.height == null) missing.push("height");
+  if (coaster.speed == null) missing.push("speed");
+  if (coaster.length == null) missing.push("length");
+  if (!coaster.manufacturer?.value?.trim()) missing.push("manufacturer");
+  if (!coaster.imageUrl?.value?.trim()) missing.push("image");
+  if (!coaster.openingDate?.value?.trim()) missing.push("opening_year");
+  return missing;
+}
+
+/** Prefer coasters missing core ride stats over opening-year-only gaps. */
+function completenessSortKey(fields: string[]): number {
+  let score = 0;
+  if (fields.includes("height")) score += 8;
+  if (fields.includes("speed")) score += 8;
+  if (fields.includes("length")) score += 4;
+  if (fields.includes("manufacturer")) score += 3;
+  if (fields.includes("image")) score += 2;
+  if (fields.includes("opening_year")) score += 1;
+  return score;
+}
+
 export function validateCatalog(input: ValidateCatalogInput): ValidateResult {
   const findings: QualityFinding[] = [];
   const reviewItems: ReviewItem[] = [];
+  const completenessItems: MissingDataItem[] = [];
   const parksById = new Map(input.parks.map((p) => [p.id, p]));
   const generatedAt = input.generatedAt ?? new Date().toISOString();
 
@@ -238,7 +276,44 @@ export function validateCatalog(input: ValidateCatalogInput): ValidateResult {
         action: "REVIEW",
       });
     }
+
+    const missingFields = missingCoasterCompletenessFields(coaster);
+    if (missingFields.length > 0) {
+      const dbId = resolveCoasterDbId(coaster.sourceIds as Record<string, unknown>, coaster.id);
+      const parkName = park?.name.value ?? null;
+      findings.push({
+        severity: "info",
+        code: "missing_coaster_fields",
+        message: `Missing fields: ${missingFields.join(", ")}`,
+        entityType: "coaster",
+        entityId: coaster.id,
+        entityName: coaster.name.value,
+        details: { fields: missingFields, dbId, parkName },
+      });
+      completenessItems.push({
+        type: "MISSING_DATA",
+        entityType: "coaster",
+        entityId: coaster.id,
+        entityName: coaster.name.value,
+        field: missingFields[0]!,
+        fields: [...missingFields],
+        reason: `Still empty after sync: ${missingFields.join(", ")}`,
+        action: "REVIEW",
+        ...(dbId != null
+          ? { dbId, publicPath: coasterPublicPath(coaster.name.value, dbId) }
+          : {}),
+        parkName,
+      });
+    }
   }
+
+  completenessItems.sort((a, b) => {
+    const scoreDiff =
+      completenessSortKey(b.fields ?? [b.field]) - completenessSortKey(a.fields ?? [a.field]);
+    if (scoreDiff !== 0) return scoreDiff;
+    return a.entityName.localeCompare(b.entityName);
+  });
+  reviewItems.push(...completenessItems);
 
   const parkDupes = findParkDuplicateCandidates(input.parks);
   for (const dupe of parkDupes) {

@@ -74,6 +74,7 @@ export function mapSupabaseCoaster(
   const qid = (row.wikidata_id ?? row.external_id)?.match(/^Q\d+$/i)?.[0];
   if (qid) sourceIds.wikidata = qid.toUpperCase();
   if (row.enwiki_title) sourceIds.enwiki = row.enwiki_title;
+  sourceIds.coastertrak = String(row.id);
 
   const provId = String(row.id);
   const parkId = parkIdByDbId.get(row.park_id) ?? null;

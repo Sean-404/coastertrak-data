@@ -6,6 +6,7 @@ import {
   canonicalCoasterListSchema,
   canonicalParkListSchema,
 } from "../canonical/index.js";
+import { loadEnvFiles } from "../lib/load-env.js";
 import { fixturesDir } from "../lib/paths.js";
 import { logger } from "../lib/logger.js";
 import { ingestWikidata } from "../sources/wikidata/ingest.js";
@@ -197,6 +198,7 @@ async function cmdPipeline(flags: Record<string, string | boolean>): Promise<voi
 }
 
 async function main(): Promise<void> {
+  loadEnvFiles();
   const { command, flags } = parseArgs(process.argv);
 
   if (!command) {

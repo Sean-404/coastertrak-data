@@ -43,9 +43,17 @@ export type MissingDataItem = {
   entityType: "park" | "coaster";
   entityId: string;
   entityName: string;
+  /** Primary / first missing field (kept for older consumers). */
   field: string;
+  /** All missing fields when multiple (coaster completeness). */
+  fields?: string[];
   reason: string;
   action: ReviewAction;
+  /** Live CoasterTrak `coasters.id` when known. */
+  dbId?: number;
+  parkName?: string | null;
+  /** Relative public catalog path, e.g. `/coasters/nemesis-123`. */
+  publicPath?: string;
 };
 
 export type ReviewItem =
