@@ -28,7 +28,55 @@ export function estimateTokens(text: string): number {
   return Math.ceil(text.length / 4);
 }
 
-function extractJsonObject(text: string): unknown {
+/** Pull complete assessment objects from truncated model JSON. */
+export function salvageAssessmentsJson(text: string): { assessments: unknown[] } | null {
+  const marker = text.match(/"assessments"\s*:\s*\[/);
+  if (!marker || marker.index == null) return null;
+
+  const items: unknown[] = [];
+  let i = marker.index + marker[0].length;
+
+  while (i < text.length) {
+    while (i < text.length && /[\s,]/.test(text[i]!)) i++;
+    if (text[i] === "]") break;
+    if (text[i] !== "{") break;
+
+    let depth = 0;
+    let inString = false;
+    let escape = false;
+    let j = i;
+    for (; j < text.length; j++) {
+      const c = text[j]!;
+      if (inString) {
+        if (escape) escape = false;
+        else if (c === "\\") escape = true;
+        else if (c === '"') inString = false;
+        continue;
+      }
+      if (c === '"') inString = true;
+      else if (c === "{") depth++;
+      else if (c === "}") {
+        depth--;
+        if (depth === 0) {
+          j++;
+          break;
+        }
+      }
+    }
+    if (depth !== 0) break;
+
+    try {
+      items.push(JSON.parse(text.slice(i, j)));
+    } catch {
+      break;
+    }
+    i = j;
+  }
+
+  return items.length > 0 ? { assessments: items } : null;
+}
+
+export function extractJsonObject(text: string): unknown {
   const trimmed = text.trim();
   const fenced = trimmed.match(/^```(?:json)?\s*([\s\S]*?)```$/i);
   const body = fenced ? fenced[1]!.trim() : trimmed;
@@ -39,8 +87,14 @@ function extractJsonObject(text: string): unknown {
     const start = body.indexOf("{");
     const end = body.lastIndexOf("}");
     if (start >= 0 && end > start) {
-      return JSON.parse(body.slice(start, end + 1));
+      try {
+        return JSON.parse(body.slice(start, end + 1));
+      } catch {
+        // fall through to salvage
+      }
     }
+    const salvaged = salvageAssessmentsJson(body);
+    if (salvaged) return salvaged;
     throw new Error(`Could not parse JSON from model output: ${body.slice(0, 200)}`);
   }
 }
@@ -48,16 +102,19 @@ function extractJsonObject(text: string): unknown {
 export async function reviewBatchWithGateway(
   contexts: unknown[],
   options: GatewayChatOptions = {},
-): Promise<{ assessments: z.infer<typeof aiReviewBatchResponseSchema>["assessments"]; usage: { input: number; output: number } }> {
+): Promise<{
+  assessments: z.infer<typeof aiReviewBatchResponseSchema>["assessments"];
+  usage: { input: number; output: number };
+}> {
   const fetchImpl = options.fetchImpl ?? fetch;
   const apiKey = resolveApiKey(options.apiKey);
   const model = options.model ?? process.env.AI_GATEWAY_MODEL?.trim() ?? AI_REVIEW_DEFAULT_MODEL;
 
   const systemPrompt = `You review theme-park catalog data quality for CoasterTrak.
 For each item, judge whether the catalog record is PLAUSIBLE (likely correct) or likely WRONG.
-Focus on: park–coaster geography/country alignment, missing links, suspicious stats, duplicate plausibility.
-Respond with JSON only: {"assessments":[{"itemKey":"...","plausible":true|false,"confidence":"LOW|MEDIUM|HIGH","issue":"max 120 chars","suggestedAction":"max 80 chars or omit"}]}
-Do not invent facts. If unsure, plausible=false and confidence=LOW.`;
+Focus on: park–coaster geography/country alignment, suspicious stats, duplicate plausibility.
+Respond with JSON only: {"assessments":[{"itemKey":"...","plausible":true|false,"confidence":"LOW|MEDIUM|HIGH","issue":"max 80 chars","suggestedAction":"max 60 chars or omit"}]}
+Keep issue/suggestedAction short. Do not invent facts. If unsure, plausible=false and confidence=LOW.`;
 
   const userPayload = JSON.stringify(contexts);
   const userPrompt = `Review these ${contexts.length} catalog quality flags:\n${userPayload}`;
@@ -82,7 +139,11 @@ Do not invent facts. If unsure, plausible=false and confidence=LOW.`;
 
   if (!response.ok) {
     const body = await response.text().catch(() => "");
-    throw new Error(`AI Gateway request failed (${response.status}): ${body.slice(0, 300)}`);
+    const err = new Error(
+      `AI Gateway request failed (${response.status}): ${body.slice(0, 300)}`,
+    ) as Error & { status?: number };
+    err.status = response.status;
+    throw err;
   }
 
   const json = (await response.json()) as {

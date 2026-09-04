@@ -40,15 +40,20 @@ describe("selectItemsForAiReview", () => {
     },
   ];
 
-  it("skips duplicates by default and prioritizes missing data", () => {
+  it("skips duplicates and missing-data by default; prioritizes suspicious values", () => {
     const selected = selectItemsForAiReview(items, 10, false);
-    expect(selected.map((i) => i.type)).toEqual(["MISSING_DATA", "SUSPICIOUS_VALUE"]);
+    expect(selected.map((i) => i.type)).toEqual(["SUSPICIOUS_VALUE"]);
+  });
+
+  it("can include missing-data when requested", () => {
+    const selected = selectItemsForAiReview(items, 10, false, true);
+    expect(selected.map((i) => i.type)).toEqual(["SUSPICIOUS_VALUE", "MISSING_DATA"]);
   });
 
   it("respects limit", () => {
-    const selected = selectItemsForAiReview(items, 1, true);
+    const selected = selectItemsForAiReview(items, 1, true, true);
     expect(selected).toHaveLength(1);
-    expect(selected[0]?.type).toBe("MISSING_DATA");
+    expect(selected[0]?.type).toBe("SUSPICIOUS_VALUE");
   });
 });
 

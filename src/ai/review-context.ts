@@ -121,10 +121,13 @@ export function selectItemsForAiReview(
   items: ReviewItem[],
   limit: number,
   includeDuplicates: boolean,
+  includeMissing = false,
 ): ReviewItem[] {
-  const filtered = includeDuplicates
-    ? items
-    : items.filter((item) => item.type !== "POSSIBLE_DUPLICATE");
+  const filtered = items.filter((item) => {
+    if (!includeDuplicates && item.type === "POSSIBLE_DUPLICATE") return false;
+    if (!includeMissing && item.type === "MISSING_DATA") return false;
+    return true;
+  });
 
   return [...filtered]
     .sort((a, b) => {

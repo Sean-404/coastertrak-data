@@ -11,6 +11,7 @@ import {
   AI_REVIEW_DEFAULT_LIMIT,
   AI_REVIEW_DEFAULT_MODEL,
   AI_REVIEW_MAX_LIMIT,
+  AI_REVIEW_MAX_OUTPUT_TOKENS,
 } from "../ai/config.js";
 import { estimateTokens, reviewBatchWithGateway } from "../ai/gateway-client.js";
 import {
@@ -27,6 +28,8 @@ export type AiReviewOptions = {
   runId?: string;
   limit?: number;
   includeDuplicates?: boolean;
+  /** Include MISSING_DATA field-completeness items (usually not useful for AI). */
+  includeMissing?: boolean;
   model?: string;
   dryRun?: boolean;
   onProgress?: (message: string) => void;
@@ -86,6 +89,7 @@ export async function runAiCatalogReview(options: AiReviewOptions = {}): Promise
   const log = options.onProgress ?? ((msg: string) => logger.info(msg));
   const limit = clampLimit(options.limit);
   const includeDuplicates = options.includeDuplicates === true;
+  const includeMissing = options.includeMissing === true;
   const model = options.model ?? process.env.AI_GATEWAY_MODEL?.trim() ?? AI_REVIEW_DEFAULT_MODEL;
 
   const runId = options.runId ?? (await latestSupabaseRunId(dataRoot));
@@ -98,7 +102,7 @@ export async function runAiCatalogReview(options: AiReviewOptions = {}): Promise
   const parksById = new Map(parks.map((p) => [p.id, p]));
   const coastersById = new Map(coasters.map((c) => [c.id, c]));
 
-  const selected = selectItemsForAiReview(queue.items, limit, includeDuplicates);
+  const selected = selectItemsForAiReview(queue.items, limit, includeDuplicates, includeMissing);
   if (!selected.length) {
     log("No review items selected for AI review — writing empty report");
     return {
@@ -155,17 +159,74 @@ export async function runAiCatalogReview(options: AiReviewOptions = {}): Promise
   const assessments: AiReviewReport["assessments"] = [];
   let inputTokens = 0;
   let outputTokens = 0;
+  let batchFailures = 0;
+
+  async function reviewWithRetry(
+    batch: (typeof contexts)[number],
+    label: string,
+  ): Promise<void> {
+    const attempt = async (items: typeof batch, maxTokens?: number) => {
+      try {
+        const result = await reviewBatchWithGateway(items, { model, maxTokens });
+        assessments.push(...result.assessments);
+        inputTokens += result.usage.input;
+        outputTokens += result.usage.output;
+        return true;
+      } catch (error) {
+        const status = (error as { status?: number })?.status;
+        const message = error instanceof Error ? error.message.slice(0, 180) : String(error);
+        if (status === 429) {
+          log(`  ${label}: rate limited — waiting 8s…`);
+          await new Promise((r) => setTimeout(r, 8000));
+          try {
+            const result = await reviewBatchWithGateway(items, { model, maxTokens });
+            assessments.push(...result.assessments);
+            inputTokens += result.usage.input;
+            outputTokens += result.usage.output;
+            return true;
+          } catch (retryError) {
+            log(
+              `  ${label} still failing: ${
+                retryError instanceof Error ? retryError.message.slice(0, 180) : String(retryError)
+              }`,
+            );
+            return false;
+          }
+        }
+        log(`  ${label} failed: ${message}`);
+        return false;
+      }
+    };
+
+    if (await attempt(batch)) return;
+
+    if (batch.length <= 1) {
+      batchFailures += 1;
+      log(`  ${label}: skipping item after retry`);
+      return;
+    }
+
+    log(`  ${label}: retrying items one-by-one…`);
+    for (let j = 0; j < batch.length; j++) {
+      const ok = await attempt([batch[j]!], AI_REVIEW_MAX_OUTPUT_TOKENS);
+      if (!ok) {
+        batchFailures += 1;
+        log(`  ${label} item ${j + 1}/${batch.length} skipped`);
+      }
+    }
+  }
 
   for (let i = 0; i < batches.length; i++) {
     log(`  Batch ${i + 1}/${batches.length} (${batches[i]!.length} items)…`);
-    const result = await reviewBatchWithGateway(batches[i], { model });
-    assessments.push(...result.assessments);
-    inputTokens += result.usage.input;
-    outputTokens += result.usage.output;
+    await reviewWithRetry(batches[i]!, `Batch ${i + 1}`);
   }
 
   const costUsd = estimateCostUsd(inputTokens, outputTokens);
-  log(`Done — ${assessments.length} assessments, ~${inputTokens + outputTokens} tokens, ~$${costUsd.toFixed(4)}`);
+  log(
+    `Done — ${assessments.length} assessments` +
+      (batchFailures ? `, ${batchFailures} skipped` : "") +
+      `, ~${inputTokens + outputTokens} tokens, ~$${costUsd.toFixed(4)}`,
+  );
 
   const flagged = assessments.filter((a) => !a.plausible && a.confidence !== "LOW");
   if (flagged.length) {

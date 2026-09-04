@@ -158,6 +158,7 @@ async function cmdAiReview(flags: Record<string, string | boolean>): Promise<voi
     runId: getRunId(flags),
     limit: Number.isFinite(limit) ? limit : undefined,
     includeDuplicates: flags["include-duplicates"] === true,
+    includeMissing: flags["include-missing"] === true,
     dryRun: flags.dryRun === true,
     onProgress: (msg) => logger.info(msg),
   });
@@ -223,6 +224,7 @@ Flags:
   --max-rows N    Limit live Wikidata ingest rows
   --limit N       AI review item cap (default 20, max 40)
   --include-duplicates  Include duplicate candidates in AI review
+  --include-missing     Include MISSING_DATA field gaps in AI review
   --dry-run       Preview AI cost without calling the gateway
 `);
     process.exitCode = 1;
