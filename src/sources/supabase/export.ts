@@ -28,16 +28,29 @@ function coasterCanonicalId(row: SupabaseCoasterRow): string {
   return `coaster_db_${row.id}`;
 }
 
+/** ISO user-assigned code used when parks.country cannot be mapped confidently. */
+export const UNKNOWN_COUNTRY_CODE = "ZZ";
+
 function mapDbCoasterStatus(status: string, closingYear: number | null): CoasterStatus {
   const s = status.trim().toLowerCase();
-  if (s === "defunct" || closingYear != null) return closingYear != null ? "REMOVED" : "CLOSED";
   if (s === "operating" || s === "open") return "OPERATING";
+  if (s === "under construction" || s === "under_construction") return "UNDER_CONSTRUCTION";
+  if (s === "temporarily closed" || s === "temporarily_closed" || s === "sbno") {
+    return "TEMPORARILY_CLOSED";
+  }
+  if (s === "removed" || s === "demolished") return "REMOVED";
+  if (s === "defunct" || s === "closed" || s === "permanently closed") {
+    return closingYear != null ? "REMOVED" : "CLOSED";
+  }
+  // Only treat closing_year as a signal when status is blank/unknown.
+  if (!s && closingYear != null) return "REMOVED";
   return "UNKNOWN";
 }
 
-export function mapSupabasePark(row: SupabaseParkRow, retrievedAt: string): CanonicalPark | null {
-  const countryCode = normaliseCountryToIso(row.country);
-  if (!countryCode) return null;
+export function mapSupabasePark(row: SupabaseParkRow, retrievedAt: string): CanonicalPark {
+  const mappedCountry = normaliseCountryToIso(row.country);
+  const countryCode = mappedCountry ?? UNKNOWN_COUNTRY_CODE;
+  const needsCountryReview = mappedCountry == null;
 
   const sourceIds: CanonicalPark["sourceIds"] = {};
   const qid = row.external_id?.match(/^Q\d+$/i)?.[0];
@@ -61,7 +74,12 @@ export function mapSupabasePark(row: SupabaseParkRow, retrievedAt: string): Cano
       provenance: dbProvenance(String(row.id), retrievedAt),
     },
     website: null,
-    verification: { needsReview: false, reviewReasons: [] },
+    verification: {
+      needsReview: needsCountryReview,
+      reviewReasons: needsCountryReview
+        ? [`Unmapped park country: ${row.country?.trim() || "(empty)"}`]
+        : [],
+    },
   };
 }
 
@@ -147,6 +165,9 @@ export function mapSupabaseCoaster(
 export type SupabaseCatalogExport = {
   parks: CanonicalPark[];
   coasters: CanonicalCoaster[];
+  /** Parks kept with ZZ country because the DB label could not be mapped. */
+  unmappedCountryParks: number;
+  /** @deprecated Prefer unmappedCountryParks — parks are no longer dropped. */
   skippedParks: number;
 };
 
@@ -181,15 +202,12 @@ export async function exportCatalogFromSupabase(): Promise<SupabaseCatalogExport
   }
 
   const parks: CanonicalPark[] = [];
-  let skippedParks = 0;
+  let unmappedCountryParks = 0;
   const parkIdByDbId = new Map<number, string>();
 
   for (const row of parksResult.data) {
     const mapped = mapSupabasePark(row, retrievedAt);
-    if (!mapped) {
-      skippedParks++;
-      continue;
-    }
+    if (mapped.countryCode.value === UNKNOWN_COUNTRY_CODE) unmappedCountryParks++;
     parks.push(mapped);
     parkIdByDbId.set(row.id, mapped.id);
   }
@@ -216,5 +234,5 @@ export async function exportCatalogFromSupabase(): Promise<SupabaseCatalogExport
     return coaster;
   });
 
-  return { parks, coasters, skippedParks };
+  return { parks, coasters, unmappedCountryParks, skippedParks: 0 };
 }

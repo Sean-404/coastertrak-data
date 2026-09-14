@@ -23,6 +23,8 @@ export type AnalyzeSupabaseResult = {
   reportDir: string;
   parkCount: number;
   coasterCount: number;
+  unmappedCountryParks: number;
+  /** @deprecated Prefer unmappedCountryParks — parks are no longer dropped. */
   skippedParks: number;
   passed: boolean;
 };
@@ -36,7 +38,12 @@ export async function analyzeSupabaseCatalog(
 
   log("Exporting catalog from Supabase (read-only)…");
   const exported = await exportCatalogFromSupabase();
-  log(`  ${exported.parks.length} parks, ${exported.coasters.length} coasters (${exported.skippedParks} parks skipped — unmapped country)`);
+  log(
+    `  ${exported.parks.length} parks, ${exported.coasters.length} coasters` +
+      (exported.unmappedCountryParks
+        ? ` (${exported.unmappedCountryParks} parks with unmapped country → ZZ)`
+        : ""),
+  );
 
   const validation = validateCatalog({
     parks: exported.parks,
@@ -76,7 +83,8 @@ export async function analyzeSupabaseCatalog(
         runId,
         parkCount: scored.parks.length,
         coasterCount: scored.coasters.length,
-        skippedParks: exported.skippedParks,
+        unmappedCountryParks: exported.unmappedCountryParks,
+        skippedParks: 0,
       },
       null,
       2,
@@ -143,7 +151,8 @@ export async function analyzeSupabaseCatalog(
     reportDir: runReportDir,
     parkCount: scored.parks.length,
     coasterCount: scored.coasters.length,
-    skippedParks: exported.skippedParks,
+    unmappedCountryParks: exported.unmappedCountryParks,
+    skippedParks: 0,
     passed: validation.passed,
   };
 }

@@ -72,15 +72,27 @@ export async function publishCatalogQuality(
     aiReview = null;
   }
 
-  const bundle = {
+  // Ignore AI review from a different analyze run so skipped AI doesn't republish stale flags.
+  if (aiReview && aiReview.sourceRunId !== runId) {
+    log(`Ignoring stale AI review (sourceRunId=${aiReview.sourceRunId}, current=${runId})`);
+    aiReview = null;
+  }
+
+  const bundleMeta = {
     version: 1 as const,
     generatedAt: metaRaw.generatedAt,
     source: metaRaw.source ?? source,
     runId,
-    meta: {
-      parkCount: metaRaw.parkCount,
-      coasterCount: metaRaw.coasterCount,
-    },
+    parkCount: metaRaw.parkCount,
+    coasterCount: metaRaw.coasterCount,
+  };
+
+  const bundle = {
+    version: 1 as const,
+    generatedAt: bundleMeta.generatedAt,
+    source: bundleMeta.source,
+    runId,
+    meta: bundleMeta,
     report,
     reviewQueue,
     aiReview,
@@ -113,14 +125,7 @@ export async function publishCatalogQuality(
   return {
     bucket,
     prefix,
-    meta: {
-      version: 1,
-      generatedAt: bundle.generatedAt,
-      source: bundle.source,
-      runId,
-      parkCount: bundle.meta.parkCount,
-      coasterCount: bundle.meta.coasterCount,
-    },
+    meta: bundleMeta,
   };
 }
 

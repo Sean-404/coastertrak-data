@@ -162,7 +162,7 @@ export async function runAiCatalogReview(options: AiReviewOptions = {}): Promise
   let batchFailures = 0;
 
   async function reviewWithRetry(
-    batch: (typeof contexts)[number],
+    batch: typeof contexts,
     label: string,
   ): Promise<void> {
     const attempt = async (items: typeof batch, maxTokens?: number) => {

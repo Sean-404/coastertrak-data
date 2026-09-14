@@ -179,7 +179,7 @@ async function cmdAiReview(flags: Record<string, string | boolean>): Promise<voi
   );
 }
 
-async function cmdAnalyzeSupabase(): Promise<void> {
+async function cmdAnalyzeSupabase(flags: Record<string, string | boolean>): Promise<void> {
   const result = await analyzeSupabaseCatalog({
     onProgress: (msg) => logger.info(msg),
   });
@@ -188,7 +188,11 @@ async function cmdAnalyzeSupabase(): Promise<void> {
       await readFile(join(result.reportDir, "report.json"), "utf8"),
     ),
   ));
-  if (!result.passed) process.exitCode = 1;
+  // Catalog findings are expected in live data; only fail hard with --strict so CI can still publish.
+  if (!result.passed) {
+    logger.warn("Supabase analyze completed with validation errors (artifacts written)");
+    if (flags.strict === true) process.exitCode = 1;
+  }
 }
 
 async function cmdPipeline(flags: Record<string, string | boolean>): Promise<void> {
@@ -212,20 +216,22 @@ Commands:
   report    Print quality report for latest processed run
   export    Export canonical dataset to data/output/
   analyze:supabase  Read live Supabase catalog, validate, write review queue
-  publish   Upload latest quality report to Supabase Storage (for admin UI)
+  ai:review         Optional AI pass over the review queue (needs AI_GATEWAY_API_KEY)
+  publish           Upload latest quality report to Supabase Storage (for admin UI)
   pipeline  Run ingest → process → validate → export
 
 Flags:
   --fixture       Use fixture data for ingest (default)
   --live          Query Wikidata live
-  --dry-run       Log ingest actions without writing files
+  --dry-run       Log ingest actions without writing files / preview AI cost
   --fixtures      Validate committed fixture JSON only (validate command)
   --run-id <id>   Target a specific raw/processed run
   --max-rows N    Limit live Wikidata ingest rows
+  --strict        Fail analyze:supabase when the catalog has validation errors
   --limit N       AI review item cap (default 20, max 40)
   --include-duplicates  Include duplicate candidates in AI review
   --include-missing     Include MISSING_DATA field gaps in AI review
-  --dry-run       Preview AI cost without calling the gateway
+  --wikidata      Publish from a Wikidata processed run instead of Supabase
 `);
     process.exitCode = 1;
     return;
@@ -251,7 +257,7 @@ Flags:
       await cmdPublish(flags);
       break;
     case "analyze:supabase":
-      await cmdAnalyzeSupabase();
+      await cmdAnalyzeSupabase(flags);
       break;
     case "ai:review":
       await cmdAiReview(flags);
