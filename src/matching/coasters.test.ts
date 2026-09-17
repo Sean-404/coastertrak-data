@@ -53,4 +53,15 @@ describe("coaster duplicate detection", () => {
     const candidates = findCoasterDuplicateCandidates(coasters, new Map());
     expect(candidates.length).toBe(0);
   });
+
+  it("does not flag clone hardware at different parks as duplicates", () => {
+    const prov = [{ source: "test", retrievedAt: "2026-01-01T00:00:00.000Z" }];
+    const a = makeCoaster("a", "Little Dipper", "park_a", "Q1");
+    const b = makeCoaster("b", "Little Dipper", "park_b", "Q2");
+    a.manufacturer = { value: "Allan Herschell Company", provenance: prov };
+    b.manufacturer = { value: "Allan Herschell Company", provenance: prov };
+    a.openingDate = { value: "1952", provenance: prov };
+    b.openingDate = { value: "1952", provenance: prov };
+    expect(findCoasterDuplicateCandidates([a, b], new Map())).toEqual([]);
+  });
 });

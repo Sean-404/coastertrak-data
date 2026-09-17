@@ -30,4 +30,12 @@ describe("park duplicate detection", () => {
     expect(candidates[0]?.confidence).toBe("HIGH");
     expect(candidates[0]?.reasons.some((r) => r.includes("Similar name"))).toBe(true);
   });
+
+  it("does not flag adjacent distinct parks as duplicates", () => {
+    const parks = [
+      makePark("park_wikidata_Q1", "Universal's Islands of Adventure", "US", 28.4711, -81.4675),
+      makePark("park_wikidata_Q2", "Universal Studios Florida", "US", 28.4743, -81.4664),
+    ];
+    expect(findParkDuplicateCandidates(parks)).toEqual([]);
+  });
 });

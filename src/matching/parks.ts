@@ -29,6 +29,14 @@ export function findParkDuplicateCandidates(parks: CanonicalPark[]): DuplicateCa
         distanceKm = haversineKm(coordsA.lat, coordsA.lng, coordsB.lat, coordsB.lng);
       }
 
+      const aliasMatch =
+        a.aliases.some((alias) => normalizeNameForMatch(alias) === nameB) ||
+        b.aliases.some((alias) => normalizeNameForMatch(alias) === nameA);
+
+      // Adjacent distinct parks (IOA/USF, PortAventura/Ferrari Land) share country +
+      // coordinates. Require a name/alias signal before calling them duplicates.
+      if (!aliasMatch && nameScore < NAME_SIMILARITY_MIN) continue;
+
       const reasons: string[] = [];
       if (nameScore >= NAME_SIMILARITY_MIN) {
         reasons.push(`Similar name: ${a.name.value} / ${b.name.value}`);
@@ -37,10 +45,6 @@ export function findParkDuplicateCandidates(parks: CanonicalPark[]): DuplicateCa
       if (distanceKm != null && distanceKm <= PROXIMATE_KM) {
         reasons.push(`Coordinates within ${Math.round(distanceKm * 1000)}m`);
       }
-
-      const aliasMatch =
-        a.aliases.some((alias) => normalizeNameForMatch(alias) === nameB) ||
-        b.aliases.some((alias) => normalizeNameForMatch(alias) === nameA);
       if (aliasMatch) reasons.push("Alias matches other park name");
 
       if (reasons.length < 2 && nameScore < NAME_SIMILARITY_MIN) continue;

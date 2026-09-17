@@ -124,7 +124,11 @@ export function selectItemsForAiReview(
   includeMissing = false,
 ): ReviewItem[] {
   const filtered = items.filter((item) => {
-    if (!includeDuplicates && item.type === "POSSIBLE_DUPLICATE") return false;
+    if (item.type === "POSSIBLE_DUPLICATE") {
+      if (!includeDuplicates) return false;
+      if (item.confidence === "LOW") return false;
+      return true;
+    }
     if (!includeMissing && item.type === "MISSING_DATA") return false;
     return true;
   });

@@ -6,8 +6,6 @@ import { confidenceFromScore, diceCoefficient } from "./similarity.js";
 import type { DuplicateCandidate } from "./types.js";
 
 const NAME_SIMILARITY_MIN = 0.86;
-/** Cross-park name matches need a higher bar — many rides share generic names. */
-const CROSS_PARK_NAME_SIMILARITY_MIN = 0.96;
 
 export function findCoasterDuplicateCandidates(
   coasters: CanonicalCoaster[],
@@ -22,20 +20,17 @@ export function findCoasterDuplicateCandidates(
 
       if (a.sourceIds.wikidata && a.sourceIds.wikidata === b.sourceIds.wikidata) continue;
 
+      // Same-named hardware at two parks is a clone / extra install, not a duplicate.
       const samePark = Boolean(a.parkId && a.parkId === b.parkId);
+      if (!samePark) continue;
+
       const nameA = normalizeNameForMatch(a.name.value);
       const nameB = normalizeNameForMatch(b.name.value);
       const nameScore = diceCoefficient(nameA, nameB);
-      const minScore = samePark ? NAME_SIMILARITY_MIN : CROSS_PARK_NAME_SIMILARITY_MIN;
-      if (nameScore < minScore) continue;
+      if (nameScore < NAME_SIMILARITY_MIN) continue;
 
       const reasons: string[] = [`Similar name: ${a.name.value} / ${b.name.value}`];
-
-      if (samePark) {
-        reasons.push(`Same park: ${a.parkId}`);
-      } else {
-        reasons.push("Cross-park name match");
-      }
+      reasons.push(`Same park: ${a.parkId}`);
 
       if (
         a.manufacturer?.value &&
@@ -56,10 +51,7 @@ export function findCoasterDuplicateCandidates(
         if (km <= 0.5) reasons.push(`Coordinates within ${Math.round(km * 1000)}m`);
       }
 
-      // Cross-park: name alone is never enough (many rides share titles globally).
-      if (!samePark && reasons.length <= 2) continue;
-
-      const score = nameScore * 0.6 + (samePark ? 0.3 : 0) + 0.1;
+      const score = nameScore * 0.6 + 0.3 + 0.1;
       candidates.push({
         type: "POSSIBLE_DUPLICATE",
         entityType: "coaster",

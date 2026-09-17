@@ -45,6 +45,11 @@ describe("selectItemsForAiReview", () => {
     expect(selected.map((i) => i.type)).toEqual(["SUSPICIOUS_VALUE"]);
   });
 
+  it("skips LOW-confidence duplicates even when duplicates are included", () => {
+    const selected = selectItemsForAiReview(items, 10, true);
+    expect(selected.map((i) => i.type)).toEqual(["SUSPICIOUS_VALUE"]);
+  });
+
   it("can include missing-data when requested", () => {
     const selected = selectItemsForAiReview(items, 10, false, true);
     expect(selected.map((i) => i.type)).toEqual(["SUSPICIOUS_VALUE", "MISSING_DATA"]);
