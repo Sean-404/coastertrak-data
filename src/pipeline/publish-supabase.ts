@@ -119,6 +119,16 @@ export async function publishCatalogQuality(
     log(`Uploaded ${bucket}/${path}`);
   }
 
+  // Drop stale AI flags from Storage when this publish has no matching ai-review.
+  if (!aiReview) {
+    const { error } = await client.storage.from(bucket).remove([`${prefix}/ai-review.json`]);
+    if (error) {
+      log(`Could not remove stale ai-review.json: ${error.message}`);
+    } else {
+      log(`Removed stale ${bucket}/${prefix}/ai-review.json`);
+    }
+  }
+
   const { data: pub } = client.storage.from(bucket).getPublicUrl(`${prefix}/bundle.json`);
   log(`Public bundle URL: ${pub.publicUrl}`);
 
