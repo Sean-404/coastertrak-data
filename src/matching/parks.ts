@@ -7,6 +7,11 @@ import type { DuplicateCandidate } from "./types.js";
 const PROXIMATE_KM = 0.5;
 const NAME_SIMILARITY_MIN = 0.86;
 
+/** Placeholder shells from parkless Wikidata rows — not real duplicate parks. */
+function isUnknownHistoricalParkName(name: string): boolean {
+  return /^unknown\s*\/\s*historical park/i.test(name.trim());
+}
+
 export function findParkDuplicateCandidates(parks: CanonicalPark[]): DuplicateCandidate[] {
   const candidates: DuplicateCandidate[] = [];
 
@@ -14,6 +19,10 @@ export function findParkDuplicateCandidates(parks: CanonicalPark[]): DuplicateCa
     for (let j = i + 1; j < parks.length; j++) {
       const a = parks[i]!;
       const b = parks[j]!;
+
+      if (isUnknownHistoricalParkName(a.name.value) || isUnknownHistoricalParkName(b.name.value)) {
+        continue;
+      }
 
       if (a.sourceIds.wikidata && a.sourceIds.wikidata === b.sourceIds.wikidata) continue;
 

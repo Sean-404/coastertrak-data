@@ -101,6 +101,22 @@ npm run data:catalog-quality
 
 Published `meta.json` includes `version`, `generatedAt`, `source`, `runId`, `parkCount`, `coasterCount` for the CoasterTrak admin catalog page.
 
+### Inspecting live findings (no admin login needed)
+
+From CoasterTrak (uses service role + Storage):
+
+```bash
+npx tsx --env-file=.env.local scripts/fetch-catalog-quality-report.ts
+```
+
+Or from this repo after `analyze:supabase`:
+
+```bash
+cat data/reports/supabase/<runId>/report.json | jq '.summary, [.findings[] | select(.severity=="error")]'
+```
+
+Findings with `details.autoRepairHint` are meant to be fixed by CoasterTrak’s `npm run data:auto-repair` (run by CI before/after catalog quality).
+
 ## Offline Wikidata pipeline
 
 ### Setup

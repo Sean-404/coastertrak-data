@@ -141,4 +141,41 @@ describe("validateCatalog", () => {
     ]);
     expect(result.report.findings.some((f) => f.code === "missing_coaster_fields")).toBe(true);
   });
+
+  it("flags prior-life closing years with an auto-repair hint", () => {
+    const coaster: CanonicalCoaster = {
+      id: "coaster_wikidata_Q5555555",
+      sourceIds: { wikidata: "Q5555555" },
+      name: { value: "Relocated Ride", provenance: prov("Q5555555") },
+      aliases: [],
+      parkId: park.id,
+      countryCode: { value: "SG", provenance: prov("Q5555555") },
+      manufacturer: null,
+      model: null,
+      coasterType: null,
+      status: "OPERATING",
+      openingDate: { value: "2015", provenance: prov("Q5555555") },
+      closingDate: { value: "2010", provenance: prov("Q5555555") },
+      height: null,
+      speed: null,
+      length: null,
+      inversions: null,
+      duration: null,
+      coordinates: null,
+      description: null,
+      imageUrl: null,
+      verification: { needsReview: false, reviewReasons: [] },
+    };
+
+    const result = validateCatalog({
+      parks: [park],
+      coasters: [coaster],
+      sourceRunId: "test",
+    });
+
+    const finding = result.report.findings.find((f) => f.code === "closing_before_opening");
+    expect(finding?.severity).toBe("error");
+    expect(finding?.details?.autoRepairHint).toBe("clear_prior_life_closing");
+    expect(result.reviewItems.some((i) => i.type === "SUSPICIOUS_VALUE")).toBe(true);
+  });
 });

@@ -223,10 +223,47 @@ export function validateCatalog(input: ValidateCatalogInput): ValidateResult {
       findings.push({
         severity: "error",
         code: "closing_before_opening",
-        message: "Closing date before opening date",
+        message: "Closing date before opening date (likely prior-life retirement on a relocated Q-id)",
         entityType: "coaster",
         entityId: coaster.id,
         entityName: coaster.name.value,
+        details: {
+          openingDate: coaster.openingDate.value,
+          closingDate: coaster.closingDate.value,
+          autoRepairHint: "clear_prior_life_closing",
+        },
+      });
+      reviewItems.push({
+        type: "SUSPICIOUS_VALUE",
+        entityType: "coaster",
+        entityId: coaster.id,
+        entityName: coaster.name.value,
+        field: "closingDate",
+        value: coaster.closingDate.value,
+        reason:
+          "Closing year precedes opening year — CoasterTrak auto-repair clears prior-life retirement years",
+        confidence: "HIGH",
+        action: "REVIEW",
+      });
+    }
+
+    if (
+      (coaster.status === "CLOSED" || coaster.status === "REMOVED") &&
+      !coaster.closingDate &&
+      coaster.openingDate
+    ) {
+      findings.push({
+        severity: "warning",
+        code: "defunct_without_closing",
+        message: "Marked defunct/removed without a closing date",
+        entityType: "coaster",
+        entityId: coaster.id,
+        entityName: coaster.name.value,
+        details: {
+          status: coaster.status,
+          openingDate: coaster.openingDate.value,
+          autoRepairHint: "review_status_or_closing",
+        },
       });
     }
 

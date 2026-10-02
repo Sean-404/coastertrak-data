@@ -38,4 +38,12 @@ describe("park duplicate detection", () => {
     ];
     expect(findParkDuplicateCandidates(parks)).toEqual([]);
   });
+
+  it("ignores Unknown / historical park placeholder shells", () => {
+    const parks = [
+      makePark("park_db_1", "Unknown / historical park (Germany)", "DE", 48.9, 9.65),
+      makePark("park_db_2", "Unknown / historical park (Germany)", "DE", 51.9, 8.68),
+    ];
+    expect(findParkDuplicateCandidates(parks)).toEqual([]);
+  });
 });
