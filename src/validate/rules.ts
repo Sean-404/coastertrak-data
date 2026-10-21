@@ -5,6 +5,7 @@ import {
   isOpeningDateInFuture,
 } from "../normalize/dates.js";
 import { isValidCoordinates } from "../normalize/coordinates.js";
+import { isPlaceholderName } from "../normalize/name.js";
 import { haversineKm } from "../lib/geo.js";
 import { coasterPublicPath, resolveCoasterDbId } from "../lib/public-links.js";
 import { findCoasterDuplicateCandidates, findExactCoasterDuplicates } from "../matching/coasters.js";
@@ -15,6 +16,7 @@ import type {
   ReviewItem,
   SuspiciousValue,
 } from "../matching/types.js";
+import { mismatchedParkDisambiguator } from "./park-disambiguator.js";
 import type { QualityFinding, QualityReport, ValidateResult } from "./types.js";
 
 /** Conservative upper bounds — flagged as suspicious, not auto-deleted. Documented in README. */
@@ -28,6 +30,7 @@ export const STAT_LIMITS = {
 
 /** Fields checked for coaster completeness (still empty after sync / backfill). */
 export const COASTER_COMPLETENESS_FIELDS = [
+  "status",
   "height",
   "speed",
   "length",
@@ -55,6 +58,8 @@ function countBySeverity(findings: QualityFinding[]) {
 
 function missingCoasterCompletenessFields(coaster: CanonicalCoaster): CoasterCompletenessField[] {
   const missing: CoasterCompletenessField[] = [];
+  // Shown publicly as "Status not confirmed" — the most visible gap on park pages.
+  if (coaster.status === "UNKNOWN" && !coaster.closingDate) missing.push("status");
   if (coaster.height == null) missing.push("height");
   if (coaster.speed == null) missing.push("speed");
   if (coaster.length == null) missing.push("length");
@@ -67,6 +72,7 @@ function missingCoasterCompletenessFields(coaster: CanonicalCoaster): CoasterCom
 /** Prefer coasters missing core ride stats over opening-year-only gaps. */
 function completenessSortKey(fields: string[]): number {
   let score = 0;
+  if (fields.includes("status")) score += 16;
   if (fields.includes("height")) score += 8;
   if (fields.includes("speed")) score += 8;
   if (fields.includes("length")) score += 4;
@@ -181,6 +187,48 @@ export function validateCatalog(input: ValidateCatalogInput): ValidateResult {
           action: "REVIEW",
         };
         reviewItems.push(conflict);
+      }
+    }
+
+    if (park && !isPlaceholderName(park.name.value)) {
+      const otherPlace = mismatchedParkDisambiguator(coaster.name.value, [
+        park.name.value,
+        ...park.aliases,
+      ]);
+      if (otherPlace) {
+        // Relocated rides keep one row per former park, labelled with the current park.
+        // Those rows are fine when defunct; when they are not, the current park's live
+        // status has leaked onto an old installation (e.g. Wildcat shown operating at Cedar Point).
+        const notDefunct = coaster.status === "OPERATING" || coaster.status === "UNKNOWN";
+        findings.push({
+          severity: notDefunct ? "warning" : "info",
+          code: "name_names_other_park",
+          message: notDefunct
+            ? `Name points at "${otherPlace}" but the row is a non-defunct ride at ${park.name.value}`
+            : `Prior installation at ${park.name.value} labelled with its later home "${otherPlace}"`,
+          entityType: "coaster",
+          entityId: coaster.id,
+          entityName: coaster.name.value,
+          details: {
+            parkId: park.id,
+            parkName: park.name.value,
+            disambiguator: otherPlace,
+            status: coaster.status,
+          },
+        });
+        if (notDefunct) {
+          reviewItems.push({
+            type: "SUSPICIOUS_VALUE",
+            entityType: "coaster",
+            entityId: coaster.id,
+            entityName: coaster.name.value,
+            field: "status",
+            value: coaster.status,
+            reason: `Label names "${otherPlace}", yet this ${park.name.value} row is not marked defunct — likely a former installation showing the current park's status`,
+            confidence: "MEDIUM",
+            action: "REVIEW",
+          });
+        }
       }
     }
 

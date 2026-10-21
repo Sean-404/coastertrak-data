@@ -142,6 +142,49 @@ describe("validateCatalog", () => {
     expect(result.report.findings.some((f) => f.code === "missing_coaster_fields")).toBe(true);
   });
 
+  it("flags a name that points at a different park and queues unconfirmed status first", () => {
+    const coaster: CanonicalCoaster = {
+      id: "coaster_wikidata_Q5555555",
+      sourceIds: { wikidata: "Q5555555", coastertrak: "7" },
+      name: { value: "Wildcat (Jolly Roger Amusement Park)", provenance: prov("Q5555555") },
+      aliases: [],
+      parkId: park.id,
+      countryCode: { value: "SG", provenance: prov("Q5555555") },
+      manufacturer: { value: "Schwarzkopf", provenance: prov("Q5555555") },
+      model: null,
+      coasterType: { value: "steel", provenance: prov("Q5555555") },
+      status: "UNKNOWN",
+      openingDate: { value: "1979", provenance: prov("Q5555555") },
+      closingDate: null,
+      height: null,
+      speed: null,
+      length: null,
+      inversions: null,
+      duration: null,
+      coordinates: null,
+      description: null,
+      imageUrl: { value: "https://example.org/a.jpg", provenance: prov("Q5555555") },
+      verification: { needsReview: false, reviewReasons: [] },
+    };
+
+    const result = validateCatalog({ parks: [park], coasters: [coaster], sourceRunId: "test" });
+
+    const mismatch = result.report.findings.find((f) => f.code === "name_names_other_park");
+    expect(mismatch?.severity).toBe("warning");
+    expect(mismatch?.details).toMatchObject({ disambiguator: "Jolly Roger Amusement Park" });
+    expect(
+      result.reviewItems.some((i) => i.type === "SUSPICIOUS_VALUE" && i.field === "status"),
+    ).toBe(true);
+
+    const missing = result.reviewItems.find((i) => i.type === "MISSING_DATA");
+    expect(missing && "fields" in missing ? missing.fields : []).toEqual([
+      "status",
+      "height",
+      "speed",
+      "length",
+    ]);
+  });
+
   it("flags prior-life closing years with an auto-repair hint", () => {
     const coaster: CanonicalCoaster = {
       id: "coaster_wikidata_Q5555555",
