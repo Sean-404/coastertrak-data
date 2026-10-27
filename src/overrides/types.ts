@@ -6,7 +6,7 @@ export const overrideMatchSchema = z
     "sourceIds.wikidata": z.string().optional(),
   })
   .refine((m) => m.id ?? m["sourceIds.wikidata"], {
-    message: "Override match requires id or sourceIds.wikidata",
+    error: "Override match requires id or sourceIds.wikidata",
   });
 
 export const parkOverridePatchSchema = z.object({
@@ -33,7 +33,7 @@ export const parkOverrideEntrySchema = z.object({
   patch: parkOverridePatchSchema,
   reason: z.string().min(1),
   appliedBy: z.string().default("manual"),
-  appliedAt: z.string().datetime(),
+  appliedAt: z.iso.datetime(),
 });
 
 export const coasterOverrideEntrySchema = z.object({
@@ -41,7 +41,7 @@ export const coasterOverrideEntrySchema = z.object({
   patch: coasterOverridePatchSchema,
   reason: z.string().min(1),
   appliedBy: z.string().default("manual"),
-  appliedAt: z.string().datetime(),
+  appliedAt: z.iso.datetime(),
 });
 
 export const parkOverridesFileSchema = z.object({

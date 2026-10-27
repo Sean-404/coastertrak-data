@@ -18,7 +18,7 @@ const sourcedNumber = sourcedValueSchema(z.number());
 const sourcedDate = sourcedValueSchema(
   z.string().regex(/^\d{4}(-\d{2}(-\d{2})?)?$/, "Expected ISO date YYYY or YYYY-MM-DD"),
 );
-const sourcedUrl = sourcedValueSchema(z.string().url());
+const sourcedUrl = sourcedValueSchema(z.url());
 
 export const canonicalCoasterSchema = z.object({
   id: z.string().min(1),
@@ -47,7 +47,7 @@ export type CanonicalCoaster = z.infer<typeof canonicalCoasterSchema>;
 
 export const canonicalCoasterListSchema = z.object({
   version: z.literal(1),
-  generatedAt: z.string().datetime(),
+  generatedAt: z.iso.datetime(),
   coasters: z.array(canonicalCoasterSchema),
 });
 export type CanonicalCoasterList = z.infer<typeof canonicalCoasterListSchema>;

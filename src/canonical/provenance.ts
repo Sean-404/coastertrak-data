@@ -6,12 +6,12 @@ export type Confidence = z.infer<typeof confidenceSchema>;
 export const provenanceRecordSchema = z.object({
   source: z.string().min(1),
   sourceId: z.string().optional(),
-  retrievedAt: z.string().datetime(),
+  retrievedAt: z.iso.datetime(),
   rawValue: z.unknown().optional(),
 });
 export type ProvenanceRecord = z.infer<typeof provenanceRecordSchema>;
 
-export function sourcedValueSchema<T extends z.ZodTypeAny>(valueSchema: T) {
+export function sourcedValueSchema<T extends z.ZodType>(valueSchema: T) {
   return z.object({
     value: valueSchema,
     provenance: z.array(provenanceRecordSchema).min(1),
@@ -47,11 +47,9 @@ export const quantitySchema = z.object({
 });
 export type Quantity = z.infer<typeof quantitySchema>;
 
-export const sourceIdsSchema = z
-  .object({
-    wikidata: z.string().optional(),
-    rcdb: z.string().optional(),
-    enwiki: z.string().optional(),
-  })
-  .passthrough();
+export const sourceIdsSchema = z.looseObject({
+  wikidata: z.string().optional(),
+  rcdb: z.string().optional(),
+  enwiki: z.string().optional(),
+});
 export type SourceIds = z.infer<typeof sourceIdsSchema>;

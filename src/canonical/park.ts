@@ -12,7 +12,7 @@ import { isoCountryCodeSchema } from "./country.js";
 const sourcedString = sourcedValueSchema(z.string().min(1));
 const sourcedCountryCode = sourcedValueSchema(isoCountryCodeSchema);
 const sourcedCoordinates = sourcedValueSchema(coordinatesSchema);
-const sourcedUrl = sourcedValueSchema(z.string().url());
+const sourcedUrl = sourcedValueSchema(z.url());
 
 export const canonicalParkSchema = z.object({
   id: z.string().min(1),
@@ -29,7 +29,7 @@ export type CanonicalPark = z.infer<typeof canonicalParkSchema>;
 
 export const canonicalParkListSchema = z.object({
   version: z.literal(1),
-  generatedAt: z.string().datetime(),
+  generatedAt: z.iso.datetime(),
   parks: z.array(canonicalParkSchema),
 });
 export type CanonicalParkList = z.infer<typeof canonicalParkListSchema>;
