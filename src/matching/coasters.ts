@@ -2,14 +2,126 @@ import type { CanonicalCoaster } from "../canonical/coaster.js";
 import type { CanonicalPark } from "../canonical/park.js";
 import { haversineKm } from "../lib/geo.js";
 import { normalizeNameForMatch } from "../normalize/name.js";
-import { confidenceFromScore, diceCoefficient } from "./similarity.js";
+import { confidenceFromScore, diceCoefficient, type MatchConfidence } from "./similarity.js";
 import type { DuplicateCandidate } from "./types.js";
 
 const NAME_SIMILARITY_MIN = 0.86;
 const SCALE_CONFLICT_RATIO = 2;
+/** Height, speed and length: this many equal values is too many for two separate rides. */
+const MIN_IDENTICAL_STATS = 2;
+const STAT_TOLERANCE = 0.05;
+
+const CONFIDENCE_RANK: Record<MatchConfidence, number> = { LOW: 0, MEDIUM: 1, HIGH: 2 };
+
+/** Company suffixes, so "Mack Rides" and "Mack Rides GmbH & Co KG" are one manufacturer. */
+const MANUFACTURER_NOISE = new Set([
+  "ag",
+  "b",
+  "bv",
+  "co",
+  "company",
+  "corp",
+  "corporation",
+  "gmbh",
+  "inc",
+  "incorporated",
+  "kg",
+  "limited",
+  "llc",
+  "ltd",
+  "manufacturing",
+  "rides",
+  "v",
+]);
+
+/** Words that say nothing about which ride a name means. */
+const NAME_NOISE = new Set(["coaster", "roller", "the"]);
 
 function norm(value: string | null | undefined): string {
   return (value ?? "").trim().toLowerCase();
+}
+
+export function manufacturerKey(value: string | null | undefined): string {
+  const words = normalizeNameForMatch(value ?? "").split(" ").filter(Boolean);
+  const core = words.filter((word) => !MANUFACTURER_NOISE.has(word));
+  return (core.length > 0 ? core : words).join(" ");
+}
+
+function nameWords(name: string): string[] {
+  return normalizeNameForMatch(name)
+    .split(" ")
+    .filter((word) => word && !NAME_NOISE.has(word));
+}
+
+function yearOf(value: string | null | undefined): number | null {
+  const match = /^\d{4}/.exec((value ?? "").trim());
+  return match ? Number(match[0]) : null;
+}
+
+/**
+ * One row closed on or before the other opened: a former version kept on purpose
+ * (Mantis / Rougarou, Colossus / Twisted Colossus), or a new ride reusing an old name.
+ */
+export function isFormerVersionPair(a: CanonicalCoaster, b: CanonicalCoaster): boolean {
+  const closedBefore = (older: CanonicalCoaster, newer: CanonicalCoaster) => {
+    const closed = yearOf(older.closingDate?.value);
+    const opened = yearOf(newer.openingDate?.value);
+    return closed != null && opened != null && closed <= opened;
+  };
+  return closedBefore(a, b) || closedBefore(b, a);
+}
+
+function identicalStats(a: CanonicalCoaster, b: CanonicalCoaster): string[] {
+  const stats = [
+    ["height", a.height?.value.value, b.height?.value.value],
+    ["speed", a.speed?.value.value, b.speed?.value.value],
+    ["length", a.length?.value.value, b.length?.value.value],
+  ] as const;
+  return stats
+    .filter(([, x, y]) => x != null && y != null && Math.abs(x - y) <= STAT_TOLERANCE)
+    .map(([label]) => label);
+}
+
+function oneNameContainsTheOther(a: CanonicalCoaster, b: CanonicalCoaster): boolean {
+  const wordsA = nameWords(a.name.value);
+  const wordsB = nameWords(b.name.value);
+  const [shorter, longer] = wordsA.length <= wordsB.length ? [wordsA, wordsB] : [wordsB, wordsA];
+  return shorter.length > 0 && shorter.every((word) => longer.includes(word));
+}
+
+/**
+ * A ride can be listed under two unrelated-looking names (Eurosat / Eurosat - CanCan Coaster,
+ * Top Gun / The Bat), so compare what the rows say about the ride, not only their names.
+ */
+function sameRideEvidence(
+  a: CanonicalCoaster,
+  b: CanonicalCoaster,
+): { confidence: MatchConfidence; reasons: string[] } | null {
+  const reasons: string[] = [];
+  let confidence: MatchConfidence | null = null;
+  const raise = (level: MatchConfidence) => {
+    if (confidence == null || CONFIDENCE_RANK[level] > CONFIDENCE_RANK[confidence]) confidence = level;
+  };
+
+  const articleA = norm(a.sourceIds.enwiki);
+  if (articleA && articleA === norm(b.sourceIds.enwiki)) {
+    reasons.push(`Same Wikipedia article: ${a.sourceIds.enwiki}`);
+    raise("HIGH");
+  }
+
+  const stats = identicalStats(a, b);
+  if (stats.length >= MIN_IDENTICAL_STATS) {
+    reasons.push(`Identical ${stats.join(", ")}`);
+    raise("MEDIUM");
+  }
+
+  const mfrA = manufacturerKey(a.manufacturer?.value);
+  if (mfrA && mfrA === manufacturerKey(b.manufacturer?.value) && oneNameContainsTheOther(a, b)) {
+    reasons.push("One name contains the other, same manufacturer");
+    raise("LOW");
+  }
+
+  return confidence ? { confidence, reasons } : null;
 }
 
 function measureRatio(a: number | null | undefined, b: number | null | undefined): number | null {
@@ -29,8 +141,8 @@ export function areLikelyDistinctSameParkCoasters(
   a: CanonicalCoaster,
   b: CanonicalCoaster,
 ): boolean {
-  const mfrA = norm(a.manufacturer?.value);
-  const mfrB = norm(b.manufacturer?.value);
+  const mfrA = manufacturerKey(a.manufacturer?.value);
+  const mfrB = manufacturerKey(b.manufacturer?.value);
   if (!mfrA || !mfrB || mfrA === mfrB) return false;
 
   const nameA = normalizeNameForMatch(a.name.value);
@@ -76,21 +188,24 @@ export function findCoasterDuplicateCandidates(
       // Same-named hardware at two parks is a clone / extra install, not a duplicate.
       const samePark = Boolean(a.parkId && a.parkId === b.parkId);
       if (!samePark) continue;
+      if (isFormerVersionPair(a, b)) continue;
 
       const nameA = normalizeNameForMatch(a.name.value);
       const nameB = normalizeNameForMatch(b.name.value);
       const nameScore = diceCoefficient(nameA, nameB);
-      if (nameScore < NAME_SIMILARITY_MIN) continue;
+      const nameMatch = nameScore >= NAME_SIMILARITY_MIN && !areLikelyDistinctSameParkCoasters(a, b);
+      const evidence = sameRideEvidence(a, b);
+      if (!nameMatch && !evidence) continue;
 
-      if (areLikelyDistinctSameParkCoasters(a, b)) continue;
-
-      const reasons: string[] = [`Similar name: ${a.name.value} / ${b.name.value}`];
+      const reasons: string[] = [];
+      if (nameMatch) reasons.push(`Similar name: ${a.name.value} / ${b.name.value}`);
+      reasons.push(...(evidence?.reasons ?? []));
       reasons.push(`Same park: ${a.parkId}`);
 
       if (
         a.manufacturer?.value &&
         b.manufacturer?.value &&
-        a.manufacturer.value === b.manufacturer.value
+        manufacturerKey(a.manufacturer.value) === manufacturerKey(b.manufacturer.value)
       ) {
         reasons.push(`Same manufacturer: ${a.manufacturer.value}`);
       }
@@ -106,7 +221,14 @@ export function findCoasterDuplicateCandidates(
         if (km <= 0.5) reasons.push(`Coordinates within ${Math.round(km * 1000)}m`);
       }
 
-      const score = nameScore * 0.6 + 0.3 + 0.1;
+      const nameConfidence = nameMatch ? confidenceFromScore(nameScore * 0.6 + 0.3 + 0.1) : null;
+      const levels = [nameConfidence, evidence?.confidence].filter(
+        (level): level is MatchConfidence => level != null,
+      );
+      const confidence = levels.reduce((best, level) =>
+        CONFIDENCE_RANK[level] > CONFIDENCE_RANK[best] ? level : best,
+      );
+
       candidates.push({
         type: "POSSIBLE_DUPLICATE",
         entityType: "coaster",
@@ -114,7 +236,7 @@ export function findCoasterDuplicateCandidates(
         entityB: b.id,
         nameA: a.name.value,
         nameB: b.name.value,
-        confidence: confidenceFromScore(score),
+        confidence,
         reasons,
         action: "REVIEW",
       });

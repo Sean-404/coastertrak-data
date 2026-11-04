@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import type { CanonicalCoaster } from "../canonical/coaster.js";
-import { findCoasterDuplicateCandidates } from "./coasters.js";
+import { findCoasterDuplicateCandidates, isFormerVersionPair, manufacturerKey } from "./coasters.js";
 
 const PROV = [{ source: "test", retrievedAt: "2026-01-01T00:00:00.000Z" }];
 
@@ -61,6 +61,83 @@ function withScale(
         : { value: { value: lengthM, unit: "m" }, provenance: PROV, confidence: "HIGH" },
   };
 }
+
+function withWiki(coaster: CanonicalCoaster, enwiki: string): CanonicalCoaster {
+  return { ...coaster, sourceIds: { ...coaster.sourceIds, enwiki } };
+}
+
+function withYears(coaster: CanonicalCoaster, opened: string | null, closed: string | null): CanonicalCoaster {
+  return {
+    ...coaster,
+    openingDate: opened ? { value: opened, provenance: PROV } : null,
+    closingDate: closed ? { value: closed, provenance: PROV } : null,
+  };
+}
+
+describe("same-ride signals beyond the name", () => {
+  it("flags Eurosat / Eurosat - CanCan Coaster, whose names alone score too low", () => {
+    const article = "Eurosat - CanCan Coaster";
+    const coasters = [
+      withWiki(withScale(withMfr(makeCoaster("a", "Eurosat", "europa", "Q874877"), "Mack Rides GmbH & Co KG"), 25.6, 900), article),
+      withWiki(withScale(withMfr(makeCoaster("b", article, "europa", "Q63196746"), "Mack Rides"), 25.6, 900), article),
+    ];
+    const [hit] = findCoasterDuplicateCandidates(coasters, new Map());
+    expect(hit).toMatchObject({ entityA: "a", entityB: "b", confidence: "HIGH" });
+    expect(hit?.reasons.join(" ")).toContain("Same Wikipedia article");
+  });
+
+  it("flags two identical stats as MEDIUM even with unrelated names", () => {
+    const coasters = [
+      withScale(makeCoaster("a", "Intimidator 305", "kd", "Q1"), 93, 1554),
+      withScale(makeCoaster("b", "Pantherian", "kd", "Q2"), 93, 1554),
+    ];
+    expect(findCoasterDuplicateCandidates(coasters, new Map())[0]?.confidence).toBe("MEDIUM");
+  });
+
+  it("does not flag one matching stat", () => {
+    const coasters = [
+      withScale(makeCoaster("a", "Alpha", "p", "Q1"), 30, 500),
+      withScale(makeCoaster("b", "Omega", "p", "Q2"), 30, 900),
+    ];
+    expect(findCoasterDuplicateCandidates(coasters, new Map())).toEqual([]);
+  });
+
+  it("keeps Mantis / Rougarou out: a former version closed before its successor opened", () => {
+    const article = "Rougarou (roller coaster)";
+    const mantis = withYears(withWiki(withScale(makeCoaster("a", "Mantis", "cp", "Q1"), 44, 1189), article), "1996", "2014");
+    const rougarou = withYears(withWiki(withScale(makeCoaster("b", "Rougarou", "cp", "Q2"), 44, 1189), article), "2015", null);
+    expect(isFormerVersionPair(mantis, rougarou)).toBe(true);
+    expect(findCoasterDuplicateCandidates([mantis, rougarou], new Map())).toEqual([]);
+  });
+
+  it("does not skip a closure after the other row opened", () => {
+    const a = withYears(makeCoaster("a", "Alpha", "p"), "1990", "2010");
+    const b = withYears(makeCoaster("b", "Beta", "p"), "2005", null);
+    expect(isFormerVersionPair(a, b)).toBe(false);
+  });
+
+  it("rates Comet / Mini-Comet LOW when only the name and manufacturer overlap", () => {
+    const coasters = [
+      withMfr(makeCoaster("a", "Comet", "hp", "Q1"), "Philadelphia Toboggan Coasters"),
+      withMfr(makeCoaster("b", "Mini-Comet", "hp", "Q2"), "Philadelphia Toboggan Coasters"),
+    ];
+    expect(findCoasterDuplicateCandidates(coasters, new Map())[0]?.confidence).toBe("LOW");
+  });
+
+  it("ignores a contained name from a different manufacturer", () => {
+    const coasters = [
+      withMfr(makeCoaster("a", "Red Force", "fl", "Q1"), "Intamin"),
+      withMfr(makeCoaster("b", "Junior Red Force", "fl", "Q2"), "Zamperla"),
+    ];
+    expect(findCoasterDuplicateCandidates(coasters, new Map())).toEqual([]);
+  });
+
+  it("normalises manufacturer suffixes", () => {
+    expect(manufacturerKey("Mack Rides GmbH & Co KG")).toBe(manufacturerKey("Mack Rides"));
+    expect(manufacturerKey("Vekoma Rides Manufacturing B.V.")).toBe(manufacturerKey("Vekoma"));
+    expect(manufacturerKey("Intamin")).not.toBe(manufacturerKey("Mack Rides"));
+  });
+});
 
 describe("coaster duplicate detection", () => {
   it("flags same-park similar names", () => {
