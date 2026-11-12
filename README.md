@@ -97,6 +97,25 @@ npm run data:catalog-quality
 # or: npm run data:catalog-quality -- --skip-ai
 ```
 
+### Rows the site hides
+
+`analyze:supabase` leaves out the coaster rows (and placeholder parks) that the CoasterTrak site hides from its public catalog. Without this, every run re-flags them and someone has to dismiss them by hand. The rules come from CoasterTrak:
+
+- skipped Wikidata ids (`SKIP_WIKIDATA_COASTER_IDS`, `src/lib/coaster-known-fixes.ts`)
+- misattributed and non-coaster rows (`MISATTRIBUTED_ROWS`, `NON_COASTER_ROWS`, `src/lib/catalog-closures.ts`)
+- placeholder parks such as "Other" or "Unknown / historical park (…)" (`isCatalogHiddenParkName`, `src/lib/park-match.ts`)
+
+CoasterTrak writes them to `src/rules/catalog-hidden-rules.json` here. **Do not edit that file by hand.** Change the tables in CoasterTrak, then run this from CoasterTrak:
+
+```bash
+npx tsx scripts/export-catalog-hidden-rules.ts          # rewrite the copy here
+npx tsx scripts/export-catalog-hidden-rules.ts --check  # exit 1 if it is out of date
+```
+
+`npm run data:catalog-quality` (and so CI) re-exports the rules before every analyze run. CoasterTrak's `catalog-hidden-rules.test.ts` fails while a sibling checkout holds a stale copy. The regex part of the placeholder-park check is mirrored in `src/rules/catalog-hidden.ts`. The JSON includes example park names with CoasterTrak's answer for each, and the tests check the mirror against all of them.
+
+Each run writes the skipped rows, with a reason for each, to `data/processed/supabase/{runId}/hidden-rows.json`. Their counts go in `meta.json` as `hiddenParkCount` / `hiddenCoasterCount`. `parkCount` / `coasterCount` count only the rows that were analyzed.
+
 ### Storage contract
 
 Published `meta.json` includes `version`, `generatedAt`, `source`, `runId`, `parkCount`, `coasterCount` for the CoasterTrak admin catalog page.

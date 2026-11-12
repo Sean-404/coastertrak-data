@@ -1,6 +1,7 @@
 import type { CanonicalPark } from "../canonical/park.js";
 import { haversineKm } from "../lib/geo.js";
 import { normalizeNameForMatch } from "../normalize/name.js";
+import { isCatalogHiddenParkName } from "../rules/catalog-hidden.js";
 import { confidenceFromScore, diceCoefficient } from "./similarity.js";
 import type { DuplicateCandidate } from "./types.js";
 
@@ -12,16 +13,12 @@ function isUnknownHistoricalParkName(name: string): boolean {
   return /^unknown\s*\/\s*historical park/i.test(name.trim());
 }
 
-const PLACEHOLDER_PARK_NAMES = new Set(["other", "unknown", "n/a", "na", "misc"]);
-
 /**
  * Catch-all parks ("Other", "Unknown / historical park") that hold rides from many real parks.
- * CoasterTrak hides them from the catalog (isCatalogHiddenParkName in src/lib/park-match.ts).
+ * Same check CoasterTrak uses to hide them (rules shared via src/rules/catalog-hidden.ts).
  */
 export function isPlaceholderParkName(name: string | null | undefined): boolean {
-  const trimmed = (name ?? "").trim();
-  if (!trimmed) return true;
-  return PLACEHOLDER_PARK_NAMES.has(trimmed.toLowerCase()) || isUnknownHistoricalParkName(trimmed);
+  return isCatalogHiddenParkName(name);
 }
 
 export function findParkDuplicateCandidates(parks: CanonicalPark[]): DuplicateCandidate[] {

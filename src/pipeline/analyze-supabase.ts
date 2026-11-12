@@ -7,6 +7,11 @@ import { applyQualityScores } from "../confidence/score.js";
 import { logger } from "../lib/logger.js";
 import { newRunId, processedRunDir, reportDir, reviewDir } from "../lib/paths.js";
 import type { ReviewQueue } from "../matching/types.js";
+import {
+  defaultCatalogHiddenRules,
+  filterCatalogHiddenRows,
+  type CatalogHiddenRules,
+} from "../rules/catalog-hidden.js";
 import { exportCatalogFromSupabase } from "../sources/supabase/export.js";
 import { renderQualityReportMarkdown } from "../validate/report-markdown.js";
 import { validateCatalog } from "../validate/rules.js";
@@ -15,6 +20,8 @@ export type AnalyzeSupabaseOptions = {
   dataRoot?: string;
   runId?: string;
   onProgress?: (message: string) => void;
+  /** Hidden-row rules from CoasterTrak; defaults to src/rules/catalog-hidden-rules.json. */
+  hiddenRules?: CatalogHiddenRules;
 };
 
 export type AnalyzeSupabaseResult = {
@@ -23,6 +30,9 @@ export type AnalyzeSupabaseResult = {
   reportDir: string;
   parkCount: number;
   coasterCount: number;
+  /** Rows the CoasterTrak site hides from its catalog; left out of validation. */
+  hiddenParkCount: number;
+  hiddenCoasterCount: number;
   unmappedCountryParks: number;
   /** @deprecated Prefer unmappedCountryParks — parks are no longer dropped. */
   skippedParks: number;
@@ -45,15 +55,26 @@ export async function analyzeSupabaseCatalog(
         : ""),
   );
 
+  // Rows the site hides on purpose would otherwise be re-flagged on every run.
+  const visible = filterCatalogHiddenRows(
+    exported.parks,
+    exported.coasters,
+    options.hiddenRules ?? defaultCatalogHiddenRules(),
+  );
+  log(
+    `  skipping ${visible.hiddenCoasters.length} coasters and ${visible.hiddenParks.length} parks ` +
+      "that the CoasterTrak catalog hides",
+  );
+
   const validation = validateCatalog({
-    parks: exported.parks,
-    coasters: exported.coasters,
+    parks: visible.parks,
+    coasters: visible.coasters,
     sourceRunId: runId,
   });
 
   const scored = applyQualityScores(
-    exported.parks,
-    exported.coasters,
+    visible.parks,
+    visible.coasters,
     validation.report.findings,
   );
 
@@ -83,9 +104,20 @@ export async function analyzeSupabaseCatalog(
         runId,
         parkCount: scored.parks.length,
         coasterCount: scored.coasters.length,
+        hiddenParkCount: visible.hiddenParks.length,
+        hiddenCoasterCount: visible.hiddenCoasters.length,
         unmappedCountryParks: exported.unmappedCountryParks,
         skippedParks: 0,
       },
+      null,
+      2,
+    ),
+    "utf8",
+  );
+  await writeFile(
+    join(runDir, "hidden-rows.json"),
+    JSON.stringify(
+      { generatedAt, parks: visible.hiddenParks, coasters: visible.hiddenCoasters },
       null,
       2,
     ),
@@ -151,6 +183,8 @@ export async function analyzeSupabaseCatalog(
     reportDir: runReportDir,
     parkCount: scored.parks.length,
     coasterCount: scored.coasters.length,
+    hiddenParkCount: visible.hiddenParks.length,
+    hiddenCoasterCount: visible.hiddenCoasters.length,
     unmappedCountryParks: exported.unmappedCountryParks,
     skippedParks: 0,
     passed: validation.passed,

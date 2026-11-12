@@ -1,0 +1,241 @@
+{
+  "version": 1,
+  "skipWikidataCoasterIds": [
+    "Q141069235",
+    "Q16899487",
+    "Q18378567",
+    "Q22000267",
+    "Q3569870",
+    "Q7508555",
+    "Q859406",
+    "Q874877"
+  ],
+  "misattributedRows": {
+    "Adventure World": [
+      "Recoil (Wonderla Hyderabad)"
+    ],
+    "Adventureland (Iowa)": [
+      "Wind Chaser"
+    ],
+    "Disneyland": [
+      "RC Racer",
+      "Seven Dwarfs Mine Train",
+      "Tron Lightcycle Power Run"
+    ],
+    "Dreamland Margate": [
+      "Jumbo Jet (Chelyuskintsev Park)",
+      "The Great Scenic Railway"
+    ],
+    "Euclid Beach Park": [
+      "The Great Scenic Railway"
+    ],
+    "Familypark": [
+      "Flyvende Ørn"
+    ],
+    "Lagoon": [
+      "All American Triple Loop"
+    ],
+    "Lake Compounce": [
+      "Recoil"
+    ],
+    "Luna Park": [
+      "Big Dipper (Luna Park Sydney, 1935)",
+      "Jet Star (Luna Park)"
+    ],
+    "New York-New York Hotel and Casino": [
+      "Speed – The Ride"
+    ],
+    "Parc Astérix": [
+      "Tiger Express"
+    ],
+    "Playland": [
+      "Corkscrew (Playland)",
+      "Jumbo Jet (Chelyuskintsev Park)",
+      "ThunderVolt"
+    ],
+    "Sesame Place": [
+      "Super Grover's Box Car Derby"
+    ],
+    "Six Flags America": [
+      "Alpine Bobsled",
+      "Batgirl Batarang",
+      "Flashback (Six Flags New England)",
+      "Gotham City Gauntlet: Escape from Arkham Asylum",
+      "Green Lantern (Six Flags Great Adventure)",
+      "The Dark Knight Coaster",
+      "The Joker (Six Flags México)"
+    ],
+    "Six Flags AstroWorld": [
+      "Giant Skyrocket"
+    ],
+    "Six Flags Darien Lake": [
+      "Batman The Escape"
+    ],
+    "Six Flags Great Adventure": [
+      "Superman The Ride",
+      "The Joker Funhouse Coaster",
+      "Wind Chaser"
+    ],
+    "Six Flags Great America": [
+      "Apple Zapple"
+    ],
+    "Six Flags Magic Mountain": [
+      "Firebird"
+    ],
+    "Stratosphere Tower": [
+      "Speed – The Ride"
+    ],
+    "Wild Adventures": [
+      "Wild West Express Coaster"
+    ]
+  },
+  "nonCoasterRows": {
+    "Blackpool Pleasure Beach": [
+      "Ghost Train",
+      "Valhalla",
+      "Wallace & Gromit's Thrill-o-Matic"
+    ],
+    "Disney California Adventure": [
+      "Redwood Creek Challenge Trail"
+    ],
+    "Djurs Sommerland": [
+      "The Wave"
+    ],
+    "Dollywood": [
+      "Dollywood Express"
+    ],
+    "Dorney Park": [
+      "Woodstock's Wagon Wheel"
+    ],
+    "Great Escape": [
+      "Sasquatch Launch"
+    ],
+    "Hong Kong Disneyland": [
+      "Playhouse in the Woods"
+    ],
+    "La Ronde": [
+      "Vertigo (roller coaster)"
+    ],
+    "Parque Warner Madrid": [
+      "LEX LUTHOR INVERTATRON"
+    ],
+    "Six Flags Darien Lake": [
+      "Woody's Whirlers"
+    ],
+    "Six Flags Mexico": [
+      "Hollywood Speedway Go Karts"
+    ],
+    "Six Flags New England": [
+      "CYBORG Hyper Drive"
+    ]
+  },
+  "placeholderParkNames": [
+    "other",
+    "unknown",
+    "n/a",
+    "na",
+    "misc"
+  ],
+  "hiddenParkNameExamples": [
+    {
+      "name": "",
+      "hidden": true
+    },
+    {
+      "name": "   ",
+      "hidden": true
+    },
+    {
+      "name": "Other",
+      "hidden": true
+    },
+    {
+      "name": " other ",
+      "hidden": true
+    },
+    {
+      "name": "OTHER",
+      "hidden": true
+    },
+    {
+      "name": "Unknown",
+      "hidden": true
+    },
+    {
+      "name": "N/A",
+      "hidden": true
+    },
+    {
+      "name": "na",
+      "hidden": true
+    },
+    {
+      "name": "Misc",
+      "hidden": true
+    },
+    {
+      "name": "Unknown / historical park (Japan)",
+      "hidden": true
+    },
+    {
+      "name": "unknown/historical park",
+      "hidden": true
+    },
+    {
+      "name": "Q3569870",
+      "hidden": true
+    },
+    {
+      "name": "q42",
+      "hidden": true
+    },
+    {
+      "name": "Orlando, FloridaKissimmee, FloridaFayetteville, GeorgiaUnited States",
+      "hidden": true
+    },
+    {
+      "name": "Sandusky, OhioUnited States",
+      "hidden": true
+    },
+    {
+      "name": "SeaWorld Orlando, Florida",
+      "hidden": true
+    },
+    {
+      "name": "SeaWorld Orlando",
+      "hidden": false
+    },
+    {
+      "name": "Universal Studios Florida",
+      "hidden": false
+    },
+    {
+      "name": "Six Flags America",
+      "hidden": false
+    },
+    {
+      "name": "Dreamland Margate",
+      "hidden": false
+    },
+    {
+      "name": "Lake Compounce",
+      "hidden": false
+    },
+    {
+      "name": "Otherworld",
+      "hidden": false
+    },
+    {
+      "name": "Unknown Mortal Park",
+      "hidden": false
+    },
+    {
+      "name": "Q-Park",
+      "hidden": false
+    },
+    {
+      "name": "McDonaldland",
+      "hidden": false
+    }
+  ]
+}
