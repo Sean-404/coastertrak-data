@@ -2,6 +2,7 @@ import type { CanonicalCoaster } from "../canonical/coaster.js";
 import type { CanonicalPark } from "../canonical/park.js";
 import { haversineKm } from "../lib/geo.js";
 import { normalizeNameForMatch } from "../normalize/name.js";
+import { isPlaceholderParkName } from "./parks.js";
 import { confidenceFromScore, diceCoefficient, type MatchConfidence } from "./similarity.js";
 import type { DuplicateCandidate } from "./types.js";
 
@@ -82,6 +83,17 @@ function identicalStats(a: CanonicalCoaster, b: CanonicalCoaster): string[] {
     .map(([label]) => label);
 }
 
+/**
+ * Both rows name a maker and they share no leading word. Matching stats alone are then a
+ * coincidence (Big Dipper / Grand National, Sea Viper / Storm), not one ride listed twice.
+ * Comparing the first word keeps "Arrow Development" / "Arrow Dynamics" counted as one maker.
+ */
+function differentMakers(a: CanonicalCoaster, b: CanonicalCoaster): boolean {
+  const firstA = manufacturerKey(a.manufacturer?.value).split(" ")[0] ?? "";
+  const firstB = manufacturerKey(b.manufacturer?.value).split(" ")[0] ?? "";
+  return Boolean(firstA && firstB && firstA !== firstB);
+}
+
 function oneNameContainsTheOther(a: CanonicalCoaster, b: CanonicalCoaster): boolean {
   const wordsA = nameWords(a.name.value);
   const wordsB = nameWords(b.name.value);
@@ -110,7 +122,7 @@ function sameRideEvidence(
   }
 
   const stats = identicalStats(a, b);
-  if (stats.length >= MIN_IDENTICAL_STATS) {
+  if (stats.length >= MIN_IDENTICAL_STATS && !differentMakers(a, b)) {
     reasons.push(`Identical ${stats.join(", ")}`);
     raise("MEDIUM");
   }
@@ -188,6 +200,9 @@ export function findCoasterDuplicateCandidates(
       // Same-named hardware at two parks is a clone / extra install, not a duplicate.
       const samePark = Boolean(a.parkId && a.parkId === b.parkId);
       if (!samePark) continue;
+      // "Other" holds rides from many real parks, so sharing it says nothing.
+      const park = parksById.get(a.parkId!);
+      if (park && isPlaceholderParkName(park.name.value)) continue;
       if (isFormerVersionPair(a, b)) continue;
 
       const nameA = normalizeNameForMatch(a.name.value);
@@ -243,7 +258,6 @@ export function findCoasterDuplicateCandidates(
     }
   }
 
-  void parksById;
   return candidates;
 }
 

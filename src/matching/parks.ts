@@ -12,6 +12,18 @@ function isUnknownHistoricalParkName(name: string): boolean {
   return /^unknown\s*\/\s*historical park/i.test(name.trim());
 }
 
+const PLACEHOLDER_PARK_NAMES = new Set(["other", "unknown", "n/a", "na", "misc"]);
+
+/**
+ * Catch-all parks ("Other", "Unknown / historical park") that hold rides from many real parks.
+ * CoasterTrak hides them from the catalog (isCatalogHiddenParkName in src/lib/park-match.ts).
+ */
+export function isPlaceholderParkName(name: string | null | undefined): boolean {
+  const trimmed = (name ?? "").trim();
+  if (!trimmed) return true;
+  return PLACEHOLDER_PARK_NAMES.has(trimmed.toLowerCase()) || isUnknownHistoricalParkName(trimmed);
+}
+
 export function findParkDuplicateCandidates(parks: CanonicalPark[]): DuplicateCandidate[] {
   const candidates: DuplicateCandidate[] = [];
 

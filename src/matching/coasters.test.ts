@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import type { CanonicalCoaster } from "../canonical/coaster.js";
+import type { CanonicalPark } from "../canonical/park.js";
 import { findCoasterDuplicateCandidates, isFormerVersionPair, manufacturerKey } from "./coasters.js";
 
 const PROV = [{ source: "test", retrievedAt: "2026-01-01T00:00:00.000Z" }];
@@ -92,6 +93,34 @@ describe("same-ride signals beyond the name", () => {
       withScale(makeCoaster("b", "Pantherian", "kd", "Q2"), 93, 1554),
     ];
     expect(findCoasterDuplicateCandidates(coasters, new Map())[0]?.confidence).toBe("MEDIUM");
+  });
+
+  it("does not flag matching stats from two different makers (Sea Viper / Storm)", () => {
+    const coasters = [
+      withMfr(withScale(makeCoaster("a", "Sea Viper", "sw", "Q1"), 28, 610), "Arrow Dynamics"),
+      withMfr(withScale(makeCoaster("b", "Storm", "sw", "Q2"), 28, 610), "Mack Rides"),
+    ];
+    expect(findCoasterDuplicateCandidates(coasters, new Map())).toEqual([]);
+  });
+
+  it("still flags matching stats when the makers only differ after the first word", () => {
+    const coasters = [
+      withMfr(withScale(makeCoaster("a", "Corkscrew", "p", "Q1"), 17, 194), "Arrow Development"),
+      withMfr(withScale(makeCoaster("b", "Sidewinder", "p", "Q2"), 17, 194), "Arrow Dynamics"),
+    ];
+    expect(findCoasterDuplicateCandidates(coasters, new Map())[0]?.confidence).toBe("MEDIUM");
+  });
+
+  it("ignores pairs on a placeholder park like Other", () => {
+    const other = {
+      id: "park_db_8",
+      name: { value: "Other", provenance: PROV },
+    } as unknown as CanonicalPark;
+    const coasters = [
+      withMfr(withScale(makeCoaster("a", "The Mind Eraser", "park_db_8"), 36, 285), "Vekoma"),
+      withMfr(withScale(makeCoaster("b", "Boomerang: Coast to Coaster", "park_db_8"), 36, 285), "Vekoma"),
+    ];
+    expect(findCoasterDuplicateCandidates(coasters, new Map([["park_db_8", other]]))).toEqual([]);
   });
 
   it("does not flag one matching stat", () => {
