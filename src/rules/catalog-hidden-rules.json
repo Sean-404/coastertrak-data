@@ -1,6 +1,7 @@
 {
   "version": 1,
   "skipWikidataCoasterIds": [
+    "Q133460330",
     "Q141069235",
     "Q16899487",
     "Q18378567",
@@ -90,6 +91,9 @@
     ],
     "Wild Adventures": [
       "Wild West Express Coaster"
+    ],
+    "Wonderland Sydney": [
+      "Big Dipper"
     ]
   },
   "nonCoasterRows": {
